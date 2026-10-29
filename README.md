@@ -116,6 +116,17 @@ npm ci
 npm run dev
 ```
 
+“书房”默认通过开发服务器的同源代理读取在线短文。若当前网络要求系统代理而 Node
+无法直接访问，可先在普通 PowerShell 中运行以下命令，将短文保存到不会进入 Git 的
+`.local/readings/` 私有缓存；重启开发服务器后会优先使用该缓存：
+
+```powershell
+.\scripts\sync-readings.ps1
+```
+
+生产部署需将 `/words/atlas/extras/readings/` 路由到已获授权的内容源，或在构建时设置
+`VITE_WORD_ATLAS_READING_BASE_URL`。阅读理解记录只保存在本机，不参与 FSRS 排程。
+
 打开 **http://localhost:5188**。
 
 ```bash

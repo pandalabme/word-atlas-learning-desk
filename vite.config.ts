@@ -84,6 +84,28 @@ function localMedia(
     res.end();
   }
 }
+
+function localReadings(
+  req: IncomingMessage,
+  res: ServerResponse,
+  next: () => void,
+) {
+  const route = (req.url || "").split("?")[0];
+  const match = route.match(/^\/words\/atlas\/extras\/readings\/(index|[A-Za-z0-9._-]{1,100})\.json$/);
+  if (!match) {
+    next();
+    return;
+  }
+  const file = path.resolve(".local", "readings", `${match[1]}.json`);
+  if (!fs.existsSync(file)) {
+    next();
+    return;
+  }
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "private, max-age=3600");
+  fs.createReadStream(file).pipe(res);
+}
+
 export default defineConfig({
   // Deploy under a sub-path with ATLAS_BASE=/words/ npm run build
   base: process.env.ATLAS_BASE || "/",
@@ -92,14 +114,28 @@ export default defineConfig({
     {
       name: "private-local-library",
       configureServer(server) {
+        server.middlewares.use(localReadings);
         server.middlewares.use(localMedia);
       },
       configurePreviewServer(server) {
+        server.middlewares.use(localReadings);
         server.middlewares.use(localMedia);
       },
     },
   ],
-  server: { port: 5188, strictPort: true },
-  preview: { port: 5188, strictPort: true },
+  server: {
+    port: 5188,
+    strictPort: true,
+    proxy: {
+      "/words": { target: "https://0xlei.tech", changeOrigin: true, secure: true },
+    },
+  },
+  preview: {
+    port: 5188,
+    strictPort: true,
+    proxy: {
+      "/words": { target: "https://0xlei.tech", changeOrigin: true, secure: true },
+    },
+  },
   build: { chunkSizeWarningLimit: 600 },
 });

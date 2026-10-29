@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Lightbulb, RotateCcw, Share2, Volume2, X } from "lucide-react";
+import { ArrowRight, BookOpen, Check, Lightbulb, RotateCcw, Share2, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { prefetch, useAtlas, useEntry } from "../atlas/context";
 import type { Entry, WordRef } from "../atlas/types";
@@ -433,6 +433,9 @@ function Summary({ session }: { session: ActiveSession }) {
           )}
           <button className="btn btn-ghost" onClick={() => shareSession(atlas, session)}>
             <Share2 size={18} /> 分享成绩卡
+          </button>
+          <button className="btn btn-ghost" onClick={() => go({ page: "read" })}>
+            <BookOpen size={18} /> 读一篇短文
           </button>
           <button className="btn btn-primary btn-xl" onClick={done} ref={(b) => b?.focus({ preventScroll: true })}>
             完成 <ArrowRight size={20} />

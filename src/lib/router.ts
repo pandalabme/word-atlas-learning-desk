@@ -5,6 +5,7 @@ export type Route =
   | { page: "today" }
   | { page: "atlas"; topic?: string; level?: string; q?: string; view?: string }
   | { page: "learn" }
+  | { page: "read"; id?: string }
   | { page: "practice" }
   | { page: "me" }
   | { page: "about" };
@@ -15,7 +16,7 @@ export interface Location {
   word: string | null;
 }
 
-function parse(hash: string): Location {
+export function parseLocation(hash: string): Location {
   const [path, query = ""] = hash.replace(/^#/, "").split("?");
   const params = new URLSearchParams(query);
   const word = params.get("w");
@@ -24,6 +25,11 @@ function parse(hash: string): Location {
   if (seg[0] === "atlas")
     route = { page: "atlas", topic: params.get("topic") || undefined, level: params.get("level") || undefined, q: params.get("q") || undefined, view: params.get("view") || undefined };
   else if (seg[0] === "learn") route = { page: "learn" };
+  else if (seg[0] === "read") {
+    let id: string | undefined;
+    try { id = seg[1] ? decodeURIComponent(seg[1]) : undefined; } catch { id = undefined; }
+    route = { page: "read", id };
+  }
   else if (seg[0] === "practice") route = { page: "practice" };
   else if (seg[0] === "me") route = { page: "me" };
   else if (seg[0] === "about") route = { page: "about" };
@@ -41,13 +47,14 @@ export function href(route: Route, word?: string | null) {
   }
   if (word) params.set("w", word);
   const q = params.toString();
-  return `#/${route.page === "today" ? "" : route.page}${q ? `?${q}` : ""}`;
+  const path = route.page === "today" ? "" : route.page === "read" ? `read${route.id ? `/${encodeURIComponent(route.id)}` : ""}` : route.page;
+  return `#/${path}${q ? `?${q}` : ""}`;
 }
 
-let loc = parse(location.hash);
+let loc = parseLocation(location.hash);
 const subs = new Set<() => void>();
 window.addEventListener("hashchange", () => {
-  const next = parse(location.hash);
+  const next = parseLocation(location.hash);
   const pageChange = next.route.page !== loc.route.page;
   const update = () => {
     loc = next;
@@ -71,7 +78,7 @@ export function go(route: Route, word?: string | null, replace = false) {
   const h = href(route, word);
   if (replace) history.replaceState(null, "", h);
   else history.pushState(null, "", h);
-  const next = parse(h);
+  const next = parseLocation(h);
   const pageChange = next.route.page !== loc.route.page;
   const update = () => {
     loc = next;
