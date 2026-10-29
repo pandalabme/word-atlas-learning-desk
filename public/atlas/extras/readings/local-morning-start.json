@@ -1,0 +1,18 @@
+{
+  "origin": "original", "license": "CC-BY-4.0", "aiGenerated": true,
+  "paras": [
+    "Mina likes to [[wake|wake]] before the alarm. She opens the window in her [[bedroom|bedroom]] and listens to the quiet street.",
+    "She chooses her [[clothes|clothes]] and spends one [[minute|minute]] checking the weather. Then she drinks a glass of [[juice|juice]].",
+    "Before leaving, Mina stops to [[remember|remember]] three things: her keys, her bag, and a kind word for the first person she meets."
+  ],
+  "zh": [
+    "米娜喜欢在闹钟响之前醒来。她打开卧室的窗户，听着安静的街道。",
+    "她选好衣服，用一分钟查看天气，然后喝一杯果汁。",
+    "出门前，米娜提醒自己记住三件事：钥匙、书包，以及送给遇到的第一个人的一句友善话。"
+  ],
+  "q": [
+    { "s": "Mina wakes after the alarm rings.", "a": "F", "why": "She wakes before the alarm." },
+    { "s": "She checks the weather before leaving.", "a": "T", "why": "The second paragraph says she checks the weather." },
+    { "s": "Mina travels to work by train.", "a": "NG", "why": "The passage does not say how she travels." }
+  ]
+}

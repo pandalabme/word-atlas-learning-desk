@@ -86,8 +86,9 @@ export function splitMarkedText(text: string): ReadingSegment[] {
   return out;
 }
 
-export function readingBaseUrl(envValue?: string): string {
-  return (envValue?.trim() || "/words/atlas/extras/readings").replace(/\/+$/, "");
+export function readingBaseUrl(envValue?: string, appBase = import.meta.env?.BASE_URL || "/"): string {
+  const bundled = `${appBase.replace(/\/?$/, "/")}atlas/extras/readings`;
+  return (envValue?.trim() || bundled).replace(/\/+$/, "");
 }
 
 export function readingIndexUrl(base = readingBaseUrl(import.meta.env?.VITE_WORD_ATLAS_READING_BASE_URL)): string {
@@ -97,4 +98,29 @@ export function readingIndexUrl(base = readingBaseUrl(import.meta.env?.VITE_WORD
 export function readingArticleUrl(id: string, base = readingBaseUrl(import.meta.env?.VITE_WORD_ATLAS_READING_BASE_URL)): string {
   if (!/^[A-Za-z0-9._-]{1,100}$/.test(id)) throw new Error("短文 ID 无效。");
   return `${base}/${encodeURIComponent(id)}.json`;
+}
+
+type ReadingFetchResponse = Pick<Response, "ok" | "status" | "json">;
+type ReadingFetch = (url: string, init?: RequestInit) => Promise<ReadingFetchResponse>;
+
+/** Retries transient network/server failures so a Vite restart does not strand the reader. */
+export async function fetchReadingJson(
+  url: string,
+  fetcher: ReadingFetch = fetch,
+  attempts = 3,
+  wait: (milliseconds: number) => Promise<void> = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds)),
+): Promise<unknown> {
+  const total = Math.max(1, Math.min(3, Math.trunc(attempts)));
+  let lastError: unknown = new Error("阅读资源加载失败。");
+  for (let attempt = 0; attempt < total; attempt += 1) {
+    try {
+      const response = await fetcher(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json();
+    } catch (reason) {
+      lastError = reason;
+      if (attempt + 1 < total) await wait(300 * 2 ** attempt);
+    }
+  }
+  throw lastError;
 }

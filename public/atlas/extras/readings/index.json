@@ -1,0 +1,18 @@
+{
+  "v": 1,
+  "origin": "original",
+  "license": "CC-BY-4.0",
+  "licenseFile": "LICENSE.md",
+  "attribution": "Electronic DIY Word Atlas Learning Desk contributors",
+  "aiGenerated": true,
+  "items": [
+    { "id": "local-morning-start", "title": "A Calm Start", "titleZh": "从容的早晨", "topic": "daily", "cefr": 0, "ids": ["wake", "bedroom", "clothes", "minute", "juice", "remember"] },
+    { "id": "local-library-thursday", "title": "Thursday at the Library", "titleZh": "图书馆的星期四", "topic": "education", "cefr": 0, "ids": ["library", "thursday", "student", "book", "teacher", "help"] },
+    { "id": "local-river-picnic", "title": "Picnic by the River", "titleZh": "河边野餐", "topic": "nature", "cefr": 0, "ids": ["river", "picnic", "lunch", "water", "coat", "cloud"] },
+    { "id": "local-city-museum", "title": "The Museum Trip", "titleZh": "城市博物馆之旅", "topic": "travel", "cefr": 0, "ids": ["city", "bus", "station", "ticket", "museum", "history"] },
+    { "id": "local-spring-garden", "title": "Colours after Rain", "titleZh": "雨后的花园", "topic": "nature", "cefr": 0, "ids": ["spring", "garden", "flower", "rain", "tree", "paint"] },
+    { "id": "local-family-lunch", "title": "Lunch for a Friend", "titleZh": "为朋友准备午餐", "topic": "daily", "cefr": 0, "ids": ["family", "food", "cut", "water", "lunch", "friend"] },
+    { "id": "local-first-video", "title": "Our First Video", "titleZh": "我们的第一个视频", "topic": "technology", "cefr": 1, "ids": ["computer", "phone", "video", "typing", "idea", "help"] },
+    { "id": "local-walking-meeting", "title": "A Walking Meeting", "titleZh": "边走边开的会议", "topic": "work", "cefr": 0, "ids": ["office", "meeting", "job", "walk", "morning", "friend"] }
+  ]
+}

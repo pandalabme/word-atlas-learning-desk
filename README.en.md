@@ -88,19 +88,13 @@ npm ci
 npm run dev
 ```
 
-The Reading Room normally loads the hosted passages through Vite's same-origin
-development proxy. If Node cannot use the machine's network proxy, run the
-following in a normal PowerShell window first. It stores a private cache under
-`.local/readings/`, which is excluded from Git, and the dev server prefers it
-after restart:
-
-```powershell
-.\scripts\sync-readings.ps1
-```
-
-Production deployments must route `/words/atlas/extras/readings/` to an
-authorized content source or set `VITE_WORD_ATLAS_READING_BASE_URL` at build
-time. Reading-comprehension history stays local and never changes FSRS state.
+The Reading Room uses an independently authored corpus bundled with this app.
+Its provenance, AI disclosure and CC BY 4.0 terms are recorded in
+[`public/atlas/extras/readings/LICENSE.md`](public/atlas/extras/readings/LICENSE.md).
+`npm run check:readings` rejects missing licensing metadata, unknown word IDs
+and missing article files. Reading-comprehension history stays local and never
+changes FSRS state. A separately authorized CORS-enabled source can be selected
+at build time with `VITE_WORD_ATLAS_READING_BASE_URL`.
 
 Open **http://localhost:5188**.
 

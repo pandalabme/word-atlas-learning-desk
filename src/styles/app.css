@@ -2323,10 +2323,17 @@ code {
   max-width: 430px;
 }
 .reader-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 12px 16px;
   border-radius: 12px;
   color: var(--terra);
   background: color-mix(in oklab, var(--terra) 10%, var(--card));
+}
+.reader-error .btn {
+  flex: 0 0 auto;
 }
 .reader-article-head {
   display: flex;

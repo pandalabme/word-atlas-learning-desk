@@ -1,0 +1,18 @@
+{
+  "origin": "original", "license": "CC-BY-4.0", "aiGenerated": true,
+  "paras": [
+    "Jia has an [[idea|idea]] for a short science [[video|video]]. She wants to show how a paper bridge can hold a cup.",
+    "I use my [[phone|phone]] to record while Jia works at the [[computer|computer]]. She adds titles by [[typing|typing]] each step clearly.",
+    "When the sound is too quiet, our teacher offers to [[help|help]]. We record one sentence again, and the final video is easy to understand."
+  ],
+  "zh": [
+    "佳佳想出了一个科学短视频的点子。她想展示一座纸桥怎样托住一个杯子。",
+    "我用手机拍摄，佳佳则在电脑前工作。她通过打字清楚地为每一步加上标题。",
+    "声音太小时，老师主动帮忙。我们重新录了一句话，最终的视频很容易理解。"
+  ],
+  "q": [
+    { "s": "The video is about a paper bridge.", "a": "T", "why": "Jia demonstrates a paper bridge." },
+    { "s": "They use a professional film camera.", "a": "F", "why": "The recording is made with a phone." },
+    { "s": "The class watches the final video on Friday.", "a": "NG", "why": "No viewing day is given." }
+  ]
+}

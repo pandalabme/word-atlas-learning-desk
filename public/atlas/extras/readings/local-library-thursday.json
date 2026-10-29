@@ -1,0 +1,18 @@
+{
+  "origin": "original", "license": "CC-BY-4.0", "aiGenerated": true,
+  "paras": [
+    "Every [[thursday|Thursday]], Leo visits the school [[library|library]]. It is quieter than his classroom, so he can think clearly.",
+    "Leo is a careful [[student|student]]. He returns one [[book|book]] and looks for another about the night sky.",
+    "His science [[teacher|teacher]] is there too. She offers to [[help|help]] him find a simple guide to the stars."
+  ],
+  "zh": [
+    "每个星期四，利奥都会去学校图书馆。那里比教室安静，所以他能更清楚地思考。",
+    "利奥是个认真的学生。他归还一本书，又去寻找一本关于夜空的书。",
+    "他的科学老师也在那里。她主动帮他找一本简单的星空指南。"
+  ],
+  "q": [
+    { "s": "Leo visits the library every Thursday.", "a": "T", "why": "The first sentence states this directly." },
+    { "s": "He wants a book about cooking.", "a": "F", "why": "He looks for a book about the night sky." },
+    { "s": "The teacher has written the guide herself.", "a": "NG", "why": "The passage does not name the guide's author." }
+  ]
+}

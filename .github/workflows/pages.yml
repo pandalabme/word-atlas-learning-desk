@@ -33,7 +33,6 @@ jobs:
         run: npm run build
         env:
           ATLAS_BASE: /word-atlas-learning-desk/
-          VITE_WORD_ATLAS_READING_BASE_URL: https://0xlei.tech/words/atlas/extras/readings
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact

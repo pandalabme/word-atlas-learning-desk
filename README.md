@@ -116,21 +116,17 @@ npm ci
 npm run dev
 ```
 
-“书房”默认通过开发服务器的同源代理读取在线短文。若当前网络要求系统代理而 Node
-无法直接访问，可先在普通 PowerShell 中运行以下命令，将短文保存到不会进入 Git 的
-`.local/readings/` 私有缓存；重启开发服务器后会优先使用该缓存：
-
-```powershell
-.\scripts\sync-readings.ps1
-```
-
-生产部署需将 `/words/atlas/extras/readings/` 路由到已获授权的内容源，或在构建时设置
-`VITE_WORD_ATLAS_READING_BASE_URL`。阅读理解记录只保存在本机，不参与 FSRS 排程。
+“书房”读取随应用发布的独立原创短文集；内容来源、AI 使用声明和 CC BY 4.0 授权见
+[`public/atlas/extras/readings/LICENSE.md`](public/atlas/extras/readings/LICENSE.md)。构建会运行
+`npm run check:readings`，拒绝缺少授权元数据、引用不存在词条或缺失正文的目录。阅读理解
+记录只保存在本机，不参与 FSRS 排程。也可以在构建时用
+`VITE_WORD_ATLAS_READING_BASE_URL` 指向另一个明确授权且允许跨域访问的内容源。
 
 打开 **http://localhost:5188**。
 
 ```bash
 npm test             # 单元测试
+npm run check:readings # 阅读集授权与结构校验
 npm run check:atlas  # 词库结构与媒体校验
 npm run build        # 构建到 dist/
 ```

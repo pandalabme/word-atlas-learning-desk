@@ -18,6 +18,12 @@ The material above is offered under CC BY 4.0, to the extent of the rights the m
 
 **署名 / Attribution:** `Word Atlas contributors — CC BY 4.0`，并附授权链接，说明是否做过修改。
 
+## 独立短篇阅读集 / Independent reading corpus
+
+`public/atlas/extras/readings/` 中以 `local-` 开头的短文、中文译文与理解题是为本仓库独立生成的新内容，未复制托管网站的 `extras/readings` 短文。它们以 **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)** 发布，详细来源、AI 使用声明和署名方式见该目录的 `LICENSE.md`。
+
+The passages, Chinese translations and comprehension questions prefixed with `local-` under `public/atlas/extras/readings/` are newly generated for this repository and do not copy the hosted site's `extras/readings` corpus. They are released under **[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**. See that directory's `LICENSE.md` for provenance, AI disclosure and attribution.
+
 ### 说明 / Notes
 
 - 单个英文单词与通用词表本身不主张专有权。This project claims no exclusive rights over English words or the bare headword list.

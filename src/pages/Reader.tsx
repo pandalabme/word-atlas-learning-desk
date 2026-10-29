@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useAtlas } from "../atlas/context";
 import { openWord, go } from "../lib/router";
-import { parseReadingArticle, parseReadingIndex, recommendReadings, readingArticleUrl, readingIndexUrl, splitMarkedText, type ReadingArticle, type ReadingIndexItem } from "../lib/readings";
+import { fetchReadingJson, parseReadingArticle, parseReadingIndex, recommendReadings, readingArticleUrl, readingIndexUrl, splitMarkedText, type ReadingArticle, type ReadingIndexItem } from "../lib/readings";
 import { useStore } from "../store/store";
 
 const PRACTICED_KEY = "word-atlas:reading-practiced:v1";
@@ -34,6 +34,7 @@ export function Reader({ id }: { id?: string }) {
   const [loadingIndex, setLoadingIndex] = useState(true);
   const [loadingArticle, setLoadingArticle] = useState(false);
   const [error, setError] = useState("");
+  const [retryNonce, setRetryNonce] = useState(0);
   const [translation, setTranslation] = useState(false);
   const [fontSize, setFontSize] = useState(19);
   const [answers, setAnswers] = useState<Record<number, "T" | "F" | "NG">>({});
@@ -45,13 +46,12 @@ export function Reader({ id }: { id?: string }) {
   useEffect(() => {
     let live = true;
     setLoadingIndex(true);
-    fetch(readingIndexUrl())
-      .then((response) => { if (!response.ok) throw new Error(`阅读目录加载失败（HTTP ${response.status}）。`); return response.json(); })
+    fetchReadingJson(readingIndexUrl())
       .then((data) => { if (live) { setItems(parseReadingIndex(data)); setError(""); } })
-      .catch((reason: unknown) => live && setError(reason instanceof Error ? reason.message : "阅读目录加载失败。"))
+      .catch((reason: unknown) => live && setError(reason instanceof TypeError ? "阅读目录暂时无法连接。" : reason instanceof Error ? `阅读目录加载失败（${reason.message}）。` : "阅读目录加载失败。"))
       .finally(() => live && setLoadingIndex(false));
     return () => { live = false; };
-  }, []);
+  }, [retryNonce]);
 
   useEffect(() => {
     if (!id && recommendations.length) go({ page: "read", id: recommendations[0].id }, null, true);
@@ -60,19 +60,24 @@ export function Reader({ id }: { id?: string }) {
   useEffect(() => {
     if (!id || !items.length) { setArticle(null); return; }
     const item = items.find((entry) => entry.id === id);
-    if (!item) { setArticle(null); setError("这篇短文不在阅读目录中。"); return; }
+    if (!item) {
+      setArticle(null);
+      const replacement = recommendations[0];
+      if (replacement) go({ page: "read", id: replacement.id }, null, true);
+      else setError("这篇短文不在阅读目录中。");
+      return;
+    }
     let live = true;
     setLoadingArticle(true);
     setArticle(null);
     setAnswers({});
     setTranslation(false);
-    fetch(readingArticleUrl(item.id))
-      .then((response) => { if (!response.ok) throw new Error(`短文加载失败（HTTP ${response.status}）。`); return response.json(); })
+    fetchReadingJson(readingArticleUrl(item.id))
       .then((data) => { if (live) { setArticle(parseReadingArticle(data, item)); setError(""); } })
-      .catch((reason: unknown) => live && setError(reason instanceof Error ? reason.message : "短文加载失败。"))
+      .catch((reason: unknown) => live && setError(reason instanceof TypeError ? "短文暂时无法连接。" : reason instanceof Error ? `短文加载失败（${reason.message}）。` : "短文加载失败。"))
       .finally(() => live && setLoadingArticle(false));
     return () => { live = false; };
-  }, [id, items]);
+  }, [id, items, recommendations, retryNonce]);
 
   const select = (item: ReadingIndexItem) => go({ page: "read", id: item.id });
   const next = recommendations[(currentIndex + 1) % recommendations.length];
@@ -92,7 +97,7 @@ export function Reader({ id }: { id?: string }) {
         <p className="lede">短文优先匹配本次学过的词；点击高亮词可查看词条。阅读练习只在本机记录，不改变记忆排程。</p>
       </header>
 
-      {error && <p className="reader-error" role="alert">{error}</p>}
+      {error && <div className="reader-error" role="alert"><span>{error}</span><button className="btn btn-ghost" onClick={() => { setError(""); setRetryNonce((value) => value + 1); }}>重新加载</button></div>}
       {loadingIndex ? <section className="panel reader-loading"><span className="spinner" /><span>正在打开书架…</span></section> : (
         <div className="reader-layout">
           <aside className="panel reader-shelf">

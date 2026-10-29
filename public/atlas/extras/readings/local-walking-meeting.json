@@ -1,0 +1,18 @@
+{
+  "origin": "original", "license": "CC-BY-4.0", "aiGenerated": true,
+  "paras": [
+    "On Monday [[morning|morning]], Mei and her [[friend|friend]] arrive early at the [[office|office]]. The weather is bright and cool.",
+    "They have a short [[meeting|meeting]] about their [[job|jobs]]. Instead of sitting at a table, they decide to [[walk|walk]] around the nearby park.",
+    "Fresh air helps them speak openly. They return with two clear tasks and enough energy to begin the day."
+  ],
+  "zh": [
+    "星期一早晨，梅和她的朋友早早来到办公室。天气晴朗而凉爽。",
+    "他们要开一个关于工作的短会。他们没有坐在桌边，而是决定绕着附近的公园走一走。",
+    "新鲜空气让他们更坦率地交流。他们带着两项明确的任务回到办公室，精力充沛地开始一天。"
+  ],
+  "q": [
+    { "s": "The meeting happens in the morning.", "a": "T", "why": "They meet on Monday morning." },
+    { "s": "They sit at a table for the meeting.", "a": "F", "why": "They walk around the park instead." },
+    { "s": "The park is one kilometre from the office.", "a": "NG", "why": "The distance is not stated." }
+  ]
+}

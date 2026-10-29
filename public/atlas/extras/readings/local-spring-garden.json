@@ -1,0 +1,18 @@
+{
+  "origin": "original", "license": "CC-BY-4.0", "aiGenerated": true,
+  "paras": [
+    "In [[spring|spring]], soft [[rain|rain]] falls on our small [[garden|garden]]. The ground smells fresh when the sun returns.",
+    "A yellow [[flower|flower]] opens beside the old [[tree|tree]]. Drops of water shine on every leaf.",
+    "I sit by the window and [[paint|paint]] the scene. I use green for the leaves and leave a bright space for the flower."
+  ],
+  "zh": [
+    "春天，细雨落在我们的小花园里。太阳重新出现时，泥土散发出清新的气味。",
+    "老树旁开出一朵黄色的花。每片叶子上的水滴都闪闪发亮。",
+    "我坐在窗边画下这幅景象。我用绿色画叶子，并为那朵花留出一块明亮的地方。"
+  ],
+  "q": [
+    { "s": "The story takes place in spring.", "a": "T", "why": "The first phrase sets the season." },
+    { "s": "The flower is blue.", "a": "F", "why": "The flower is yellow." },
+    { "s": "The painter sells the picture.", "a": "NG", "why": "The passage does not mention selling it." }
+  ]
+}

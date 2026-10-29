@@ -1,0 +1,18 @@
+{
+  "origin": "original", "license": "CC-BY-4.0", "aiGenerated": true,
+  "paras": [
+    "Our class takes a [[bus|bus]] from the school to the main [[station|station]] in the [[city|city]]. Everyone keeps a small map.",
+    "At the station, our teacher gives each student a [[ticket|ticket]]. We walk two streets and arrive at the [[museum|museum]].",
+    "Inside, an old map shows the [[history|history]] of the city. I learn that a market once stood where our school is today."
+  ],
+  "zh": [
+    "我们班从学校乘公交车前往市中心的车站。每个人都拿着一张小地图。",
+    "在车站，老师给每位学生一张票。我们走过两条街，来到博物馆。",
+    "博物馆里的一张老地图展示了这座城市的历史。我了解到，我们学校所在的位置过去曾是一个市场。"
+  ],
+  "q": [
+    { "s": "The class starts its trip at school.", "a": "T", "why": "They take a bus from the school." },
+    { "s": "The museum is inside the station.", "a": "F", "why": "They walk two streets from the station to the museum." },
+    { "s": "The old market closed fifty years ago.", "a": "NG", "why": "No date is given." }
+  ]
+}

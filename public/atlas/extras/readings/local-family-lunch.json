@@ -1,0 +1,18 @@
+{
+  "origin": "original", "license": "CC-BY-4.0", "aiGenerated": true,
+  "paras": [
+    "My [[family|family]] prepares [[lunch|lunch]] for a new neighbour. We choose simple [[food|food]] that is easy to share.",
+    "I wash the vegetables with [[water|water]], and my brother helps me [[cut|cut]] them. Dad warms some bread.",
+    "Our neighbour arrives with her daughter. By the end of the meal, the daughter and I are already [[friend|friends]]."
+  ],
+  "zh": [
+    "我的家人为新邻居准备午餐。我们选择了方便分享的简单食物。",
+    "我用水清洗蔬菜，哥哥帮我切菜。爸爸把面包加热。",
+    "邻居带着女儿来了。吃完饭时，我和她的女儿已经成了朋友。"
+  ],
+  "q": [
+    { "s": "The meal is prepared for a new neighbour.", "a": "T", "why": "This is stated in the first sentence." },
+    { "s": "The brother warms the bread.", "a": "F", "why": "Dad warms the bread." },
+    { "s": "The neighbour lives on the top floor.", "a": "NG", "why": "Her floor is not mentioned." }
+  ]
+}

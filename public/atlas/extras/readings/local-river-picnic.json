@@ -1,0 +1,18 @@
+{
+  "origin": "original", "license": "CC-BY-4.0", "aiGenerated": true,
+  "paras": [
+    "Noah and his sister plan a [[picnic|picnic]] beside the [[river|river]]. They carry bread, fruit, and a bottle of [[water|water]].",
+    "A dark [[cloud|cloud]] appears while they eat [[lunch|lunch]]. The air becomes cool, but the river remains calm.",
+    "Noah gives his sister his [[coat|coat]]. They pack their food and reach home just before the rain begins."
+  ],
+  "zh": [
+    "诺亚和妹妹计划在河边野餐。他们带了面包、水果和一瓶水。",
+    "他们吃午餐时出现了一朵乌云。空气变凉了，但河水仍很平静。",
+    "诺亚把外套给了妹妹。他们收好食物，刚好在下雨前回到家。"
+  ],
+  "q": [
+    { "s": "They take water to the picnic.", "a": "T", "why": "They carry a bottle of water." },
+    { "s": "The river becomes dangerous.", "a": "F", "why": "The passage says the river remains calm." },
+    { "s": "They travel home by bicycle.", "a": "NG", "why": "Their way home is not described." }
+  ]
+}
