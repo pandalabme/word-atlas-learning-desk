@@ -1,7 +1,7 @@
-import { ArrowRight, Flame, Keyboard, Printer, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, Bluetooth, Flame, Keyboard, Printer, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { prefetch, useAtlas, useEntry } from "../atlas/context";
-import { getLabelStatus, getRemoteSyncConfig, labelWordsFromAtlas, syncLabelWords } from "../lib/remoteSync";
+import { LabelBluetooth } from "../lib/labelBluetooth";
 import { go, openWord } from "../lib/router";
 import { cue } from "../lib/sound";
 import { hashSeed } from "../lib/text";
@@ -40,6 +40,10 @@ export function Today() {
   const settings = useStore((s) => s.settings);
   const [labelStatus, setLabelStatus] = useState("");
   const [sendingLabels, setSendingLabels] = useState(false);
+  const [pairingLabel, setPairingLabel] = useState(false);
+  const [labelConnected, setLabelConnected] = useState(false);
+  const labelBluetooth = useRef<LabelBluetooth | null>(null);
+  if (!labelBluetooth.current) labelBluetooth.current = new LabelBluetooth();
   const plan = useMemo(() => todayPlan(atlas, progress, settings), [atlas, progress, settings]);
   const labelIds = labelIdsForToday(progress, [...plan.due, ...plan.fresh]);
   // Warm the first cards of today's journey so the session opens instantly.
@@ -49,6 +53,7 @@ export function Today() {
     const t = window.setTimeout(() => void prefetch(atlas, ids), 800);
     return () => window.clearTimeout(t);
   }, [atlas, firstIds]);
+  useEffect(() => () => labelBluetooth.current?.disconnect(), []);
   const now = new Date();
   const today = progress.days[dayKey()];
   const streak = streakOf(progress.days);
@@ -67,26 +72,50 @@ export function Today() {
     go({ page: "learn" });
   };
 
+  const toggleLabelConnection = async () => {
+    const bluetooth = labelBluetooth.current;
+    if (!bluetooth) return;
+    if (labelConnected) {
+      bluetooth.disconnect();
+      setLabelConnected(false);
+      setLabelStatus("价签已断开。");
+      return;
+    }
+    setPairingLabel(true);
+    setLabelStatus("请在 Chrome 的设备列表中选择 XM3YN 价签…");
+    try {
+      const connection = await bluetooth.connect(() => {
+        setLabelConnected(false);
+        setLabelStatus("价签连接已断开，请重新配对。");
+      });
+      setLabelConnected(true);
+      setLabelStatus(`已连接 ${connection.deviceName}，现在可以发送单词。`);
+    } catch (error) {
+      setLabelConnected(false);
+      setLabelStatus(error instanceof Error && error.name === "NotFoundError"
+        ? "没有选择价签。"
+        : error instanceof Error ? error.message : "价签配对失败。");
+    } finally {
+      setPairingLabel(false);
+    }
+  };
+
   const sendLabelWords = async () => {
-    const words = labelWordsFromAtlas(labelIds.map((id) => atlas.byId.get(id)).filter((word): word is NonNullable<typeof word> => !!word));
+    const words = labelIds
+      .map((id) => atlas.byId.get(id)?.word)
+      .filter((word): word is string => !!word);
     if (!words.length) return;
     setSendingLabels(true);
-    setLabelStatus("");
+    setLabelStatus("正在准备价签单词包…");
     try {
-      const config = getRemoteSyncConfig();
-      const queued = await syncLabelWords(config, atlas.id, words);
-      setLabelStatus(`已发送 ${words.length} 个单词，服务器已排队处理。`);
-      for (let attempt = 0; attempt < 20; attempt++) {
-        await new Promise((resolve) => window.setTimeout(resolve, 1500));
-        const current = await getLabelStatus(config, queued.job_id);
-        if (current.status === "succeeded") {
-          setLabelStatus(`价签同步成功：${words.length} 个单词。`);
-          return;
-        }
-        if (current.status === "failed") throw new Error("价签同步失败，可以重新发送。");
-        if (current.status === "leased") setLabelStatus("Windows 网关正在向价签发送单词…");
-      }
-      setLabelStatus("任务仍在服务器处理中，可以稍后重新打开页面查看价签。");
+      const bluetooth = labelBluetooth.current;
+      if (!bluetooth) throw new Error("价签连接尚未初始化。");
+      await bluetooth.syncWords(words, ({ phase, confirmedBytes, totalBytes }) => {
+        if (phase === "preparing") setLabelStatus("正在检查价签单词固件…");
+        else if (phase === "transferring") setLabelStatus(`正在发送单词包 ${confirmedBytes}/${totalBytes} 字节…`);
+        else if (phase === "committing") setLabelStatus("正在启用新的价签单词包…");
+      });
+      setLabelStatus(`价签同步成功：已发送 ${words.length} 个单词。`);
     } catch (error) {
       setLabelStatus(error instanceof Error ? error.message : "价签同步失败。");
     } finally {
@@ -178,7 +207,10 @@ export function Today() {
                 <Keyboard size={18} /> 打字练习
               </button>
             )}
-            <button className="btn btn-glass" onClick={() => void sendLabelWords()} disabled={sendingLabels || labelIds.length === 0}>
+            <button className="btn btn-glass" onClick={() => void toggleLabelConnection()} disabled={pairingLabel || sendingLabels} aria-pressed={labelConnected}>
+              <Bluetooth size={18} /> {pairingLabel ? "正在配对…" : labelConnected ? "断开价签" : "连接价签"}
+            </button>
+            <button className="btn btn-glass" onClick={() => void sendLabelWords()} disabled={!labelConnected || sendingLabels || labelIds.length === 0}>
               <Printer size={18} /> {sendingLabels ? "发送中…" : `发送 ${labelIds.length} 个单词到价签`}
             </button>
           </div>

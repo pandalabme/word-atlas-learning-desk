@@ -235,7 +235,7 @@ export function Me({ privateAvailable }: { privateAvailable: boolean }) {
 
         <section className="panel remote-sync">
           <h3 className="eyebrow"><Cloud size={16} /> 远程同步</h3>
-          <p className="muted">同步学习进度到你的 Word Atlas 服务。同步密钥保存在此浏览器中；请仅在自用的 HTTPS 服务上使用。</p>
+          <p className="muted">这里只同步学习进度，不负责价签发送。同步密钥保存在此浏览器中；请仅在自用的 HTTPS 服务上使用。价签请在“今日”页通过 Web Bluetooth 配对后直接发送。</p>
           <label className="remote-field">
             <span>服务器 URL</span>
             <input type="url" autoComplete="url" placeholder="https://example.com" value={remote.baseUrl} onChange={(e) => setRemote({ ...remote, baseUrl: e.target.value })} />
@@ -252,7 +252,7 @@ export function Me({ privateAvailable }: { privateAvailable: boolean }) {
             <span>同步密钥</span>
             <input type="password" autoComplete="new-password" value={remote.token} onChange={(e) => setRemote({ ...remote, token: e.target.value })} />
           </label>
-          <Toggle label="学习进度自动同步" on={remote.autoSync} set={(v) => setRemote({ ...remote, autoSync: v })} />
+          <Toggle label="学习进度自动同步（可选）" on={remote.autoSync} set={(v) => setRemote({ ...remote, autoSync: v })} />
           <div className="remote-actions">
             <button className="btn btn-ghost" onClick={saveRemote}>保存配置</button>
             <button className="btn btn-terra" onClick={() => void runSync()} disabled={syncStatus.state === "syncing"}>

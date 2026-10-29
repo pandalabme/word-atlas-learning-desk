@@ -7,6 +7,7 @@ import {
   enqueueSyncEvent,
   eventCursorKeyForTesting,
   eventOutboxKeyForTesting,
+  getEventSyncStatus,
   replaySyncEvents,
   syncEventStream,
   type EventStorage,
@@ -158,4 +159,20 @@ test("one sync call sends the entire outbox in batches of at most 500", async ()
   });
   assert.deepEqual(batchSizes, [500, 1]);
   assert.deepEqual(JSON.parse(storage.getItem(eventOutboxKeyForTesting(config.deviceId, snapshot.progress.datasetId)) ?? "null"), []);
+});
+
+test("network failures explain that direct price-tag Bluetooth is unaffected", async () => {
+  const storage = new MemoryStorage();
+  const snapshot = emptySyncSnapshot("word-atlas-open");
+  await assert.rejects(() => syncEventStream(config, snapshot.progress.datasetId, {
+    storage,
+    getCurrent: () => snapshot,
+    apply: () => undefined,
+    makeBootstrap: () => [],
+    fetcher: async () => { throw new TypeError("Failed to fetch"); },
+  }), /Failed to fetch/);
+  assert.equal(
+    getEventSyncStatus().message,
+    "无法连接学习进度同步服务器；这不影响价签直连。请检查服务器 URL，或关闭自动同步。",
+  );
 });

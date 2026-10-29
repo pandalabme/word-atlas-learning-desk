@@ -422,7 +422,9 @@ export async function syncEventStream(config: RemoteSyncConfig, datasetId: strin
       const cursor = readJson<number>(storage, CURSOR_KEY(config.profileId, config.deviceId, datasetId), 0);
       setStatus({ state: "success", message: "事件同步完成", cursor });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "事件同步失败。";
+      const message = error instanceof TypeError && /fetch|network/i.test(error.message)
+        ? "无法连接学习进度同步服务器；这不影响价签直连。请检查服务器 URL，或关闭自动同步。"
+        : error instanceof Error ? error.message : "事件同步失败。";
       setStatus({ state: "error", message });
       throw error;
     }

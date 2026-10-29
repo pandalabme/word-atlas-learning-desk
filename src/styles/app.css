@@ -1569,6 +1569,10 @@ code {
   opacity: 0.55;
   cursor: not-allowed;
 }
+.journey-actions .btn-glass[aria-pressed="true"] {
+  border-color: rgba(255, 222, 157, 0.8);
+  background: rgba(255, 222, 157, 0.16);
+}
 .journey-label-note,
 .journey-label-status {
   margin-top: 12px;
