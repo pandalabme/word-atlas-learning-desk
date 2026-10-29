@@ -211,6 +211,7 @@ function validateReply(value: unknown): { cursor: number; events: ServerSyncEven
 function addStats(progress: Progress, day: string, delta: Partial<DayStat>): Progress {
   const validDelta = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
   const before = progress.days[day] ?? { n: 0, r: 0, c: 0, t: 0 };
+  const words = [...new Set([...(before.words ?? []), ...(delta.words ?? [])])].slice(0, 512);
   return {
     ...progress,
     days: {
@@ -220,6 +221,7 @@ function addStats(progress: Progress, day: string, delta: Partial<DayStat>): Pro
         r: Math.max(0, before.r + validDelta(delta?.r)),
         c: Math.max(0, before.c + validDelta(delta?.c)),
         t: Math.max(0, before.t + validDelta(delta?.t)),
+        ...(words.length ? { words } : {}),
       },
     },
   };
@@ -290,7 +292,7 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
       if (delta && typeof delta === "object" && !Array.isArray(delta)) {
         const stats = delta as Record<string, unknown>;
         if (typeof stats.day_key === "string" && /^\d{4}-\d{2}-\d{2}$/.test(stats.day_key) && stats.delta && typeof stats.delta === "object" && !Array.isArray(stats.delta))
-          progress = addStats(progress, stats.day_key, stats.delta as Partial<DayStat>);
+          progress = addStats(progress, stats.day_key, { ...(stats.delta as Partial<DayStat>), ...(typeof wordId === "string" ? { words: [wordId] } : {}) });
       }
     } else if (event.kind === "bookmark") {
       const wordId = payload.word_id;

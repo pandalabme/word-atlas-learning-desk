@@ -78,6 +78,7 @@ test("replay orders remote events, ignores self events, deduplicates typing, and
   assert.deepEqual(applied.progress.mistakes, ["apple"]);
   assert.equal(applied.progress.days["2026-01-01"].r, 1);
   assert.equal(applied.progress.days["2026-01-01"].n, 1);
+  assert.deepEqual(applied.progress.days["2026-01-01"].words, ["apple", "pear"]);
   assert.equal(applied.progress.typing.length, 1);
 });
 

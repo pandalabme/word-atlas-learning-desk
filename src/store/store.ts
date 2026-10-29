@@ -24,6 +24,8 @@ export interface DayStat {
   r: number; // graded reviews (first attempts)
   c: number; // correct first attempts
   t: number; // active seconds
+  /** Stable IDs actually graded on this local calendar day. */
+  words?: string[];
 }
 
 export interface TypingRound {
@@ -149,8 +151,12 @@ export function sanitizeProgress(v: unknown, datasetId: string): Progress {
   if (Array.isArray(v.mistakes)) out.mistakes = v.mistakes.filter((x): x is string => typeof x === "string").slice(0, 300);
   if (isObj(v.days))
     for (const [k, d] of Object.entries(v.days))
-      if (/^\d{4}-\d{2}-\d{2}$/.test(k) && isObj(d) && num(d.n, 0) && num(d.r, 0) && num(d.c, 0) && num(d.t, 0))
-        out.days[k] = { n: d.n as number, r: d.r as number, c: d.c as number, t: d.t as number };
+      if (/^\d{4}-\d{2}-\d{2}$/.test(k) && isObj(d) && num(d.n, 0) && num(d.r, 0) && num(d.c, 0) && num(d.t, 0)) {
+        const words = Array.isArray(d.words)
+          ? [...new Set(d.words.filter((id): id is string => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(id)))].slice(0, 512)
+          : [];
+        out.days[k] = { n: d.n as number, r: d.r as number, c: d.c as number, t: d.t as number, ...(words.length ? { words } : {}) };
+      }
   if (Array.isArray(v.typing))
     out.typing = v.typing
       .filter(
@@ -323,11 +329,12 @@ export function useStore<T>(select: (s: State) => T): T {
 export function bumpDay(p: Progress, patch: Partial<DayStat>): Progress {
   const k = dayKey();
   const d = p.days[k] ?? { n: 0, r: 0, c: 0, t: 0 };
+  const words = [...new Set([...(d.words ?? []), ...(patch.words ?? [])])].slice(0, 512);
   return {
     ...p,
     days: {
       ...p.days,
-      [k]: { n: d.n + (patch.n ?? 0), r: d.r + (patch.r ?? 0), c: d.c + (patch.c ?? 0), t: d.t + (patch.t ?? 0) },
+      [k]: { n: d.n + (patch.n ?? 0), r: d.r + (patch.r ?? 0), c: d.c + (patch.c ?? 0), t: d.t + (patch.t ?? 0), ...(words.length ? { words } : {}) },
     },
   };
 }

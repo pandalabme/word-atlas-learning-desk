@@ -37,16 +37,9 @@ export function todayPlan(atlas: Atlas, p: Progress, s: Settings) {
   return { due, fresh, minutes: Math.max(1, Math.round(due.length * 0.25 + fresh.length * 0.9)) };
 }
 
-/** Word IDs whose first-attempt FSRS review happened within the selected local calendar day. */
+/** Word IDs explicitly recorded while grading on the selected local calendar day. */
 export function studiedIdsForDay(p: Progress, day = new Date()) {
-  const start = new Date(day);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-  return Object.entries(p.cards)
-    .filter(([, card]) => card.last !== undefined && card.last >= start.getTime() && card.last < end.getTime())
-    .sort((a, b) => (a[1].last ?? 0) - (b[1].last ?? 0))
-    .map(([id]) => id);
+  return p.days[dayKey(day)]?.words ?? [];
 }
 
 /** Today's completed words first, followed by still-pending plan words, with stable de-duplication. */
@@ -151,7 +144,7 @@ export function answer(atlas: Atlas, step: Step & { kind: QuizKind }, correct: b
         session: { ...next.session!, graded: { ...sess.graded, [step.id]: grade } },
         mistakes: correct ? next.mistakes : [step.id, ...next.mistakes.filter((x) => x !== step.id)].slice(0, 300),
       };
-      next = bumpDay(next, { r: 1, c: correct ? 1 : 0, n: sess.newIds.includes(step.id) ? 1 : 0 });
+      next = bumpDay(next, { r: 1, c: correct ? 1 : 0, n: sess.newIds.includes(step.id) ? 1 : 0, words: [step.id] });
     }
     if (!correct) {
       // Practise it again a few steps later in another format; never re-graded.
