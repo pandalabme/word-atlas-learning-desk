@@ -5,7 +5,7 @@ import { getLabelStatus, getRemoteSyncConfig, labelWordsFromAtlas, syncLabelWord
 import { go, openWord } from "../lib/router";
 import { cue } from "../lib/sound";
 import { hashSeed } from "../lib/text";
-import { buildSession, masteredCount, todayPlan } from "../store/session";
+import { buildSession, labelIdsForToday, masteredCount, todayPlan } from "../store/session";
 import { isMastered } from "../store/srs";
 import { dayKey, store, useStore } from "../store/store";
 import { Galaxy } from "../galaxy/Galaxy";
@@ -41,7 +41,7 @@ export function Today() {
   const [labelStatus, setLabelStatus] = useState("");
   const [sendingLabels, setSendingLabels] = useState(false);
   const plan = useMemo(() => todayPlan(atlas, progress, settings), [atlas, progress, settings]);
-  const labelIds = [...new Set([...plan.due, ...plan.fresh])].slice(0, 64);
+  const labelIds = labelIdsForToday(progress, [...plan.due, ...plan.fresh]);
   // Warm the first cards of today's journey so the session opens instantly.
   const firstIds = [...plan.due.slice(0, 4), ...plan.fresh.slice(0, 6)].join(",");
   useEffect(() => {

@@ -12,6 +12,7 @@ test("a new card answered Good is scheduled soon, Again sooner", () => {
   const c = review(undefined, Rating.Good, now);
   assert.equal(c.reps, 1);
   assert.equal(c.seen, now);
+  assert.equal(c.last, now);
 });
 
 test("repeated successful reviews grow stability until mastered", () => {

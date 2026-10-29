@@ -37,6 +37,23 @@ export function todayPlan(atlas: Atlas, p: Progress, s: Settings) {
   return { due, fresh, minutes: Math.max(1, Math.round(due.length * 0.25 + fresh.length * 0.9)) };
 }
 
+/** Word IDs whose first-attempt FSRS review happened within the selected local calendar day. */
+export function studiedIdsForDay(p: Progress, day = new Date()) {
+  const start = new Date(day);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return Object.entries(p.cards)
+    .filter(([, card]) => card.last !== undefined && card.last >= start.getTime() && card.last < end.getTime())
+    .sort((a, b) => (a[1].last ?? 0) - (b[1].last ?? 0))
+    .map(([id]) => id);
+}
+
+/** Today's completed words first, followed by still-pending plan words, with stable de-duplication. */
+export function labelIdsForToday(p: Progress, plannedIds: string[], day = new Date(), limit = 64) {
+  return [...new Set([...studiedIdsForDay(p, day), ...plannedIds])].slice(0, Math.max(0, limit));
+}
+
 function quizKind(ref: WordRef, p: Progress, s: Settings, salt: number): QuizKind {
   const c = p.cards[ref.id];
   const hasImg = !!(ref.media & MEDIA.img);
