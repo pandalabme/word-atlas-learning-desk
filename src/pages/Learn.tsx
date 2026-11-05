@@ -1,6 +1,6 @@
 import { ArrowRight, BookOpen, Check, Lightbulb, RotateCcw, Share2, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { prefetch, useAtlas, useEntry } from "../atlas/context";
+import { prefetch, useAtlas, useCurricula, useCurriculum, useEntry } from "../atlas/context";
 import type { Entry, WordRef } from "../atlas/types";
 import { play, stopAudio } from "../lib/audio";
 import { burst } from "../lib/burst";
@@ -20,20 +20,21 @@ import { shareSession } from "../ui/shareSession";
 
 export function Learn() {
   const atlas = useAtlas();
+  const curriculum = useCurriculum();
   const session = useStore((s) => s.progress.session);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const { progress, settings } = store.get();
     if (!progress.session) {
-      const s = buildSession(atlas, progress, settings);
+      const s = buildSession(atlas, curriculum, progress, settings);
       if (!s.steps.length) {
         go({ page: "today" }, null, true);
         return;
       }
       store.progress((p) => ({ ...p, session: s }));
     }
-  }, [atlas]);
+  }, [atlas, curriculum]);
 
   const ids = useMemo(() => [...new Set(session?.steps.map((s) => s.id) ?? [])], [session?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -368,6 +369,9 @@ function Feedback({ entry, refw, correct, onNext }: { entry: Entry; refw: WordRe
 
 function Summary({ session }: { session: ActiveSession }) {
   const atlas = useAtlas();
+  const currentCurriculum = useCurriculum();
+  const curricula = useCurricula();
+  const curriculum = curricula.find((item) => item.id === session.curriculumId) ?? currentCurriculum;
   useEffect(() => {
     if (store.get().settings.sfx) void cue("complete");
   }, []);
@@ -381,7 +385,7 @@ function Summary({ session }: { session: ActiveSession }) {
   };
   const again = () => {
     const { progress, settings } = store.get();
-    store.progress((p) => ({ ...p, session: buildSession(atlas, progress, settings, { ids: wrong.map((w) => w.id) }) }));
+    store.progress((p) => ({ ...p, session: buildSession(atlas, curriculum, progress, settings, { ids: wrong.map((w) => w.id) }) }));
   };
   return (
     <div className="learn summary">

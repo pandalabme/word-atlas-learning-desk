@@ -25,7 +25,7 @@ class MemoryStorage implements EventStorage {
 
 const settings: Settings = {
   accent: "uk", autoplay: true, dailyNew: 10, retention: 0.9, theme: "dark", sfx: true, spell: true,
-  startLevel: 0, onboarded: true, dataset: "open", ambience: "off", ambienceVolume: 0.4, splash: false,
+  startLevel: 0, onboarded: true, dataset: "open", curriculum: "ielts", ambience: "off", ambienceVolume: 0.4, splash: false,
 };
 const uid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const serverEvent = (seq: number, deviceId: string, event: SyncEvent): ServerSyncEvent => ({ ...event, seq, device_id: deviceId });
@@ -61,7 +61,7 @@ test("replay orders remote events, ignores self events, deduplicates typing, and
   const initial = emptySyncSnapshot("word-atlas-open");
   const bookmarkAdd: SyncEvent = { event_id: uid(1), occurred_at: "2026-01-01T00:00:02.000Z", kind: "bookmark", payload: { word_id: "apple", action: "add" } };
   const bookmarkRemove: SyncEvent = { event_id: uid(2), occurred_at: "2026-01-01T00:00:03.000Z", kind: "bookmark", payload: { word_id: "apple", action: "remove" } };
-  const again: SyncEvent = { event_id: uid(3), occurred_at: "2026-01-01T00:00:04.000Z", kind: "review", payload: { word_id: "apple", grade: Rating.Again, retention: 0.9, stats_delta: { day_key: "2026-01-01", delta: { r: 1, c: 0, n: 1 } } } };
+  const again: SyncEvent = { event_id: uid(3), occurred_at: "2026-01-01T00:00:04.000Z", kind: "review", payload: { word_id: "apple", grade: Rating.Again, retention: 0.9, curriculum_id: "toefl-ibt-2026", stats_delta: { day_key: "2026-01-01", delta: { r: 1, c: 0, n: 1 } } } };
   const malformed: SyncEvent = { event_id: uid(4), occurred_at: "2026-01-01T00:00:05.000Z", kind: "review", payload: { word_id: "pear", grade: Rating.Good, retention: 0.9, stats_delta: { day_key: "2026-01-01", delta: { r: "oops", c: Infinity } } } };
   const typing: SyncEvent = { event_id: uid(5), occurred_at: "2026-01-01T00:00:06.000Z", kind: "typing", payload: { round: { at: 10, mode: "word", items: 2, wpm: 40, accuracy: 90 } } };
   const applied = replaySyncEvents(initial, [
@@ -79,6 +79,7 @@ test("replay orders remote events, ignores self events, deduplicates typing, and
   assert.deepEqual(applied.progress.mistakes, ["apple"]);
   assert.equal(applied.progress.days["2026-01-01"].r, 1);
   assert.equal(applied.progress.days["2026-01-01"].n, 1);
+  assert.equal(applied.progress.days["2026-01-01"].paths?.["toefl-ibt-2026"]?.n, 1);
   assert.deepEqual(applied.progress.days["2026-01-01"].words, ["apple", "pear"]);
   assert.equal(applied.progress.typing.length, 1);
 });

@@ -1,12 +1,26 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import type { Curriculum } from "../curriculum/types";
 import type { Atlas, Entry } from "./types";
 
 export const AtlasContext = createContext<Atlas | null>(null);
+export const CurriculumContext = createContext<{ current: Curriculum; all: Curriculum[] } | null>(null);
 
 export function useAtlas() {
   const a = useContext(AtlasContext);
   if (!a) throw new Error("Atlas not loaded");
   return a;
+}
+
+export function useCurriculum() {
+  const value = useContext(CurriculumContext);
+  if (!value) throw new Error("Curriculum not loaded");
+  return value.current;
+}
+
+export function useCurricula() {
+  const value = useContext(CurriculumContext);
+  if (!value) throw new Error("Curricula not loaded");
+  return value.all;
 }
 
 /** Full entry for an id; returns the cached copy synchronously when available. */

@@ -1,13 +1,14 @@
 import { ArrowRight, Bluetooth, Flame, Keyboard, Printer, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { prefetch, useAtlas, useEntry } from "../atlas/context";
+import { prefetch, useAtlas, useCurriculum, useEntry } from "../atlas/context";
 import { LabelBluetooth } from "../lib/labelBluetooth";
 import { go, openWord } from "../lib/router";
 import { cue } from "../lib/sound";
 import { hashSeed } from "../lib/text";
-import { buildSession, labelIdsForToday, masteredCount, todayPlan } from "../store/session";
+import { buildSession, labelIdsForToday, todayPlan } from "../store/session";
 import { isMastered } from "../store/srs";
 import { dayKey, store, useStore } from "../store/store";
+import { curriculumLevelCounts, curriculumLevelRange } from "../curriculum/levels";
 import { Galaxy } from "../galaxy/Galaxy";
 import { Highlight, Pronounce } from "../ui/EntryView";
 import { Illustration } from "../ui/Illustration";
@@ -36,6 +37,7 @@ export function streakOf(days: Record<string, { r: number }>) {
 
 export function Today() {
   const atlas = useAtlas();
+  const curriculum = useCurriculum();
   const progress = useStore((s) => s.progress);
   const settings = useStore((s) => s.settings);
   const [labelStatus, setLabelStatus] = useState("");
@@ -44,8 +46,10 @@ export function Today() {
   const [labelConnected, setLabelConnected] = useState(false);
   const labelBluetooth = useRef<LabelBluetooth | null>(null);
   if (!labelBluetooth.current) labelBluetooth.current = new LabelBluetooth();
-  const plan = useMemo(() => todayPlan(atlas, progress, settings), [atlas, progress, settings]);
-  const labelIds = labelIdsForToday(progress, [...plan.due, ...plan.fresh]);
+  const plan = useMemo(() => todayPlan(atlas, curriculum, progress, settings), [atlas, curriculum, progress, settings]);
+  const labelIds = labelIdsForToday(progress, [...plan.due, ...plan.fresh], new Date(), 512)
+    .filter((id) => curriculum.byId.has(id))
+    .slice(0, 64);
   // Warm the first cards of today's journey so the session opens instantly.
   const firstIds = [...plan.due.slice(0, 4), ...plan.fresh.slice(0, 6)].join(",");
   useEffect(() => {
@@ -56,15 +60,16 @@ export function Today() {
   useEffect(() => () => labelBluetooth.current?.disconnect(), []);
   const now = new Date();
   const today = progress.days[dayKey()];
+  const todayPath = today?.paths?.[curriculum.id] ?? (curriculum.id === "ielts" && !today?.paths ? today : undefined);
   const streak = streakOf(progress.days);
   const active = progress.session && !progress.session.finished ? progress.session : null;
   const total = plan.due.length + plan.fresh.length;
   const goal = settings.dailyNew + Math.min(plan.due.length, 60);
-  const doneToday = today?.r ?? 0;
+  const doneToday = todayPath?.r ?? 0;
 
   const start = (opts?: { reviewOnly?: boolean; extra?: number }) => {
     if (!active) {
-      const s = buildSession(atlas, progress, opts?.extra ? { ...settings, dailyNew: (today?.n ?? 0) + opts.extra } : settings, { reviewOnly: opts?.reviewOnly });
+      const s = buildSession(atlas, curriculum, progress, opts?.extra ? { ...settings, dailyNew: (todayPath?.n ?? 0) + opts.extra } : settings, { reviewOnly: opts?.reviewOnly });
       if (!s.steps.length) return;
       store.progress((p) => ({ ...p, session: s }));
     }
@@ -127,11 +132,13 @@ export function Today() {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
     const k = dayKey(d);
-    return { k, label: "日一二三四五六"[d.getDay()], v: progress.days[k]?.r ?? 0, today: i === 6 };
+    const stat = progress.days[k];
+    const pathStat = stat?.paths?.[curriculum.id] ?? (curriculum.id === "ielts" && !stat?.paths ? stat : undefined);
+    return { k, label: "日一二三四五六"[d.getDay()], v: pathStat?.r ?? 0, today: i === 6 };
   });
 
-  const learned = Object.keys(progress.cards).length;
-  const mastered = masteredCount(progress);
+  const learned = curriculum.words.reduce((count, word) => count + (progress.cards[word.id] ? 1 : 0), 0);
+  const mastered = curriculum.words.reduce((count, word) => count + (isMastered(progress.cards[word.id]) ? 1 : 0), 0);
   const teaser = (active ? active.newIds : plan.fresh).slice(0, 5).map((id) => atlas.byId.get(id)!).filter(Boolean);
 
   return (
@@ -253,14 +260,14 @@ export function Today() {
               <dd>{mastered.toLocaleString()}</dd>
             </div>
             <div>
-              <dt>全部词汇</dt>
-              <dd>{atlas.count.toLocaleString()}</dd>
+              <dt>路径词汇</dt>
+              <dd>{curriculum.count.toLocaleString()}</dd>
             </div>
           </dl>
         </section>
 
         <LevelPath />
-        <GalaxyPanel learned={learned} total={atlas.count} />
+        <GalaxyPanel learned={learned} total={curriculum.count} />
         <Topics />
       </div>
     </div>
@@ -268,6 +275,7 @@ export function Today() {
 }
 
 function GalaxyPanel({ learned, total }: { learned: number; total: number }) {
+  const curriculum = useCurriculum();
   const today = useStore((s) => s.progress.days[dayKey()]);
   const ids = useStore((s) => s.progress.cards);
   const todayIds = useMemo(() => {
@@ -280,7 +288,7 @@ function GalaxyPanel({ learned, total }: { learned: number; total: number }) {
   void today;
   return (
     <section className="galaxy-panel" onClick={() => go({ page: "atlas", view: "galaxy" })} role="link" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && go({ page: "atlas", view: "galaxy" })}>
-      <Galaxy mode="mini" highlight={todayIds} />
+      <Galaxy mode="mini" highlight={todayIds} words={curriculum.words} />
       <div className="galaxy-panel-copy">
         <p className="eyebrow eyebrow-light">你的词汇星图</p>
         <h3>
@@ -297,11 +305,12 @@ function GalaxyPanel({ learned, total }: { learned: number; total: number }) {
 
 function WordOfDay() {
   const atlas = useAtlas();
+  const curriculum = useCurriculum();
   const pick = useMemo(() => {
-    const pool = atlas.words.filter((w) => w.cefr >= 2 && w.media & 1);
-    const list = pool.length ? pool : atlas.words;
+    const pool = curriculum.words.filter((w) => w.cefr >= 2 && w.media & 1);
+    const list = pool.length ? pool : curriculum.words;
     return list[hashSeed(dayKey()) % list.length];
-  }, [atlas]);
+  }, [curriculum]);
   const { entry } = useEntry(pick?.id);
   if (!pick) return null;
   return (
@@ -330,46 +339,49 @@ function WordOfDay() {
 
 function LevelPath() {
   const atlas = useAtlas();
+  const curriculum = useCurriculum();
   const cards = useStore((s) => s.progress.cards);
   const start = useStore((s) => s.settings.startLevel);
   const levels = useMemo(() => {
-    const out = atlas.cefr.map((name) => ({ name, total: 0, seen: 0, mastered: 0 }));
-    for (const w of atlas.words) {
-      const l = out[w.cefr];
-      l.total++;
-      const c = cards[w.id];
-      if (c) {
-        l.seen++;
-        if (isMastered(c)) l.mastered++;
+    return curriculumLevelCounts(atlas.cefr, curriculum.words).map((level) => {
+      let seen = 0;
+      let mastered = 0;
+      for (const w of curriculum.words) {
+        if (w.cefr !== level.index) continue;
+        const c = cards[w.id];
+        if (c) {
+          seen++;
+          if (isMastered(c)) mastered++;
+        }
       }
-    }
-    return out;
-  }, [atlas, cards]);
+      return { ...level, seen, mastered };
+    });
+  }, [atlas, curriculum, cards]);
   const NAMES = ["入门", "基础", "进阶", "中高", "高级", "精通"];
   return (
     <section className="panel path-panel">
       <div className="panel-head">
-        <h3 className="eyebrow">学习路线 · 从 A1 到 C2</h3>
+        <h3 className="eyebrow">学习路线 · {curriculumLevelRange(levels)}</h3>
         <span className="legend">
           <i className="lg-seen" /> 已学 <i className="lg-done" /> 已掌握
         </span>
       </div>
       <ol className="route">
-        {levels.map((l, i) => {
+        {levels.map((l) => {
           const seen = l.seen / Math.max(1, l.total);
           const done = l.mastered / Math.max(1, l.total);
           return (
-            <li key={l.name} className={`${i === start ? "is-start" : ""} ${l.seen ? "is-on" : ""}`}>
-              <button onClick={() => go({ page: "atlas", level: l.name })} aria-label={`${l.name} ${NAMES[i]}，已学 ${l.seen} / ${l.total}`}>
+            <li key={l.name} className={`${l.index === start ? "is-start" : ""} ${l.seen ? "is-on" : ""}`}>
+              <button onClick={() => go({ page: "atlas", level: l.name })} aria-label={`${l.name} ${NAMES[l.index]}，已学 ${l.seen} / ${l.total}`}>
                 <span className="station" style={{ "--seen": seen, "--done": done } as React.CSSProperties}>
                   <b>{l.name}</b>
                 </span>
-                <span className="station-name">{NAMES[i]}</span>
+                <span className="station-name">{NAMES[l.index]}</span>
                 <span className="station-count">
                   {l.seen}
                   <small>/{l.total}</small>
                 </span>
-                {i === start && <span className="station-flag">起点</span>}
+                {l.index === start && <span className="station-flag">起点</span>}
               </button>
             </li>
           );
@@ -381,21 +393,22 @@ function LevelPath() {
 
 function Topics() {
   const atlas = useAtlas();
+  const curriculum = useCurriculum();
   const counts = useMemo(() => {
     const c = new Array(atlas.topics.length).fill(0);
-    atlas.words.forEach((w) => c[w.topic]++);
+    curriculum.words.forEach((w) => c[w.topic]++);
     return c;
-  }, [atlas]);
+  }, [atlas, curriculum]);
   return (
     <section className="topics-panel">
       <div className="panel-head">
-        <h3 className="eyebrow">按雅思话题探索</h3>
+        <h3 className="eyebrow">按{curriculum.id === "ielts" ? "雅思话题" : "托福基础领域"}探索</h3>
         <button className="link" onClick={() => go({ page: "atlas" })}>
           打开图鉴
         </button>
       </div>
       <ul className="topic-tiles">
-        {atlas.topics.map(([key, name], i) => (
+        {atlas.topics.map(([key, name], i) => counts[i] > 0 && (
           <li key={key}>
             <button onClick={() => go({ page: "atlas", topic: key })}>
               <img src={`${BRAND}/topic-${key}.webp`} alt="" loading="lazy" onError={(e) => (e.currentTarget.style.visibility = "hidden")} />

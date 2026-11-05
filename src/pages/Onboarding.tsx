@@ -1,20 +1,25 @@
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
-import { useAtlas } from "../atlas/context";
+import { useAtlas, useCurricula, useCurriculum } from "../atlas/context";
 import { store } from "../store/store";
+import { CurriculumPicker } from "../ui/CurriculumPicker";
 
 const LEVELS = [
-  ["A2", "基础", "日常词还不太稳"],
-  ["B1", "进阶", "目标 5.5 – 6 分"],
-  ["B2", "中高", "目标 6.5 – 7 分"],
-  ["C1", "高级", "冲刺 7.5 分以上"],
+  ["A2", "基础", "先巩固高频日常词"],
+  ["B1", "进阶", "进入完整语境学习"],
+  ["B2", "中高", "加强学术与抽象表达"],
+  ["C1", "高级", "挑战更精准的高级词汇"],
 ];
 
 export function Onboarding() {
   const atlas = useAtlas();
+  const currentCurriculum = useCurriculum();
+  const curricula = useCurricula();
   const [level, setLevel] = useState(1);
   const [goal, setGoal] = useState(10);
-  const finish = () => store.settings({ onboarded: true, startLevel: atlas.cefr.indexOf(LEVELS[level][0]), dailyNew: goal });
+  const [curriculumId, setCurriculumId] = useState(currentCurriculum.id);
+  const selectedCurriculum = curricula.find((item) => item.id === curriculumId) ?? currentCurriculum;
+  const finish = () => store.settings({ onboarded: true, curriculum: selectedCurriculum.id, startLevel: atlas.cefr.indexOf(LEVELS[level][0]), dailyNew: goal });
   return (
     <div className="onboard" role="dialog" aria-modal="true" aria-label="欢迎">
       <div className="onboard-card">
@@ -22,10 +27,11 @@ export function Onboarding() {
         <div className="onboard-body">
           <p className="eyebrow">欢迎来到词光</p>
           <h1 className="display">
-            {atlas.count.toLocaleString()} 颗星，
+            {selectedCurriculum.count.toLocaleString()} 颗星，
             <br />
             等你一颗颗点亮。
           </h1>
+          <CurriculumPicker curricula={curricula} value={selectedCurriculum.id} onChange={setCurriculumId} compact />
           <fieldset>
             <legend>你从哪里出发？</legend>
             <div className="choice-grid">

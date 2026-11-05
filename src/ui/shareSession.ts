@@ -74,7 +74,7 @@ export async function shareSession(atlas: Atlas, s: ActiveSession) {
     ctx.fillText("词光 · Word Atlas", pad, H - 58);
     ctx.font = `400 26px ${SANS}`;
     ctx.fillStyle = "#8A8C96";
-    const tag = "一词一画，点亮雅思";
+    const tag = "一词一画，点亮英语";
     ctx.fillText(tag, W - pad - ctx.measureText(tag).width, H - 60);
     const blob = await new Promise<Blob | null>((r) => c.toBlob(r, "image/png"));
     if (!blob) throw new Error();

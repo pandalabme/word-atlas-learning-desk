@@ -8,6 +8,8 @@ export type Step = { id: string; kind: "intro" } | { id: string; kind: QuizKind;
 export interface ActiveSession {
   id: string;
   started: number;
+  /** Learning path used to construct this session; absent on legacy sessions. */
+  curriculumId?: string;
   steps: Step[];
   index: number;
   /** First-attempt grade per word; retries never change it. */
@@ -19,13 +21,18 @@ export interface ActiveSession {
   finished?: number;
 }
 
-export interface DayStat {
+export interface PathDayStat {
   n: number; // new words met
   r: number; // graded reviews (first attempts)
   c: number; // correct first attempts
   t: number; // active seconds
   /** Stable IDs actually graded on this local calendar day. */
   words?: string[];
+}
+
+export interface DayStat extends PathDayStat {
+  /** Optional per-learning-path breakdown; totals above remain backward compatible. */
+  paths?: Record<string, PathDayStat>;
 }
 
 export interface TypingRound {
@@ -59,6 +66,8 @@ export interface Settings {
   startLevel: number;
   onboarded: boolean;
   dataset: "open" | "private";
+  /** Active learning path. Progress remains keyed by dataset and stable word ID. */
+  curriculum: string;
   ambience: "off" | "stars" | "rain" | "sea" | "forest" | "fire" | "voyage" | "cafe";
   ambienceVolume: number;
   splash: boolean;
@@ -82,6 +91,7 @@ export const defaultSettings: Settings = {
   startLevel: 0,
   onboarded: false,
   dataset: "open",
+  curriculum: "ielts",
   ambience: "stars",
   ambienceVolume: 0.45,
   splash: true,
@@ -155,7 +165,16 @@ export function sanitizeProgress(v: unknown, datasetId: string): Progress {
         const words = Array.isArray(d.words)
           ? [...new Set(d.words.filter((id): id is string => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(id)))].slice(0, 512)
           : [];
-        out.days[k] = { n: d.n as number, r: d.r as number, c: d.c as number, t: d.t as number, ...(words.length ? { words } : {}) };
+        const paths: Record<string, PathDayStat> = {};
+        if (isObj(d.paths))
+          for (const [pathId, raw] of Object.entries(d.paths))
+            if (/^[a-z0-9][a-z0-9-]{0,63}$/.test(pathId) && isObj(raw) && num(raw.n, 0) && num(raw.r, 0) && num(raw.c, 0) && num(raw.t, 0)) {
+              const pathWords = Array.isArray(raw.words)
+                ? [...new Set(raw.words.filter((id): id is string => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(id)))].slice(0, 512)
+                : [];
+              paths[pathId] = { n: raw.n as number, r: raw.r as number, c: raw.c as number, t: raw.t as number, ...(pathWords.length ? { words: pathWords } : {}) };
+            }
+        out.days[k] = { n: d.n as number, r: d.r as number, c: d.c as number, t: d.t as number, ...(words.length ? { words } : {}), ...(Object.keys(paths).length ? { paths } : {}) };
       }
   if (Array.isArray(v.typing))
     out.typing = v.typing
@@ -183,6 +202,7 @@ export function sanitizeSettings(v: unknown): Settings {
   if (num(v.startLevel, 0, 5)) s.startLevel = Math.round(v.startLevel as number);
   if (typeof v.onboarded === "boolean") s.onboarded = v.onboarded;
   if (v.dataset === "open" || v.dataset === "private") s.dataset = v.dataset;
+  if (typeof v.curriculum === "string" && /^[a-z0-9][a-z0-9-]{0,63}$/.test(v.curriculum)) s.curriculum = v.curriculum;
   if (["off", "stars", "rain", "sea", "forest", "fire", "voyage", "cafe"].includes(v.ambience as string)) s.ambience = v.ambience as Settings["ambience"];
   if (num(v.ambienceVolume, 0, 1)) s.ambienceVolume = v.ambienceVolume as number;
   if (typeof v.splash === "boolean") s.splash = v.splash;
@@ -326,15 +346,30 @@ export function useStore<T>(select: (s: State) => T): T {
   return useSyncExternalStore(store.subscribe, () => select(state), () => select(state));
 }
 
-export function bumpDay(p: Progress, patch: Partial<DayStat>): Progress {
+export function bumpDay(p: Progress, patch: Partial<PathDayStat>, curriculumId?: string): Progress {
   const k = dayKey();
   const d = p.days[k] ?? { n: 0, r: 0, c: 0, t: 0 };
   const words = [...new Set([...(d.words ?? []), ...(patch.words ?? [])])].slice(0, 512);
+  const existingPaths = d.paths ?? (d.n || d.r || d.c || d.t ? { ielts: { n: d.n, r: d.r, c: d.c, t: d.t, ...(d.words?.length ? { words: d.words } : {}) } } : {});
+  const beforePath = curriculumId ? existingPaths[curriculumId] ?? { n: 0, r: 0, c: 0, t: 0 } : null;
+  const pathWords = beforePath ? [...new Set([...(beforePath.words ?? []), ...(patch.words ?? [])])].slice(0, 512) : [];
+  const paths = beforePath && curriculumId
+    ? {
+        ...existingPaths,
+        [curriculumId]: {
+          n: beforePath.n + (patch.n ?? 0),
+          r: beforePath.r + (patch.r ?? 0),
+          c: beforePath.c + (patch.c ?? 0),
+          t: beforePath.t + (patch.t ?? 0),
+          ...(pathWords.length ? { words: pathWords } : {}),
+        },
+      }
+    : d.paths;
   return {
     ...p,
     days: {
       ...p.days,
-      [k]: { n: d.n + (patch.n ?? 0), r: d.r + (patch.r ?? 0), c: d.c + (patch.c ?? 0), t: d.t + (patch.t ?? 0), ...(words.length ? { words } : {}) },
+      [k]: { n: d.n + (patch.n ?? 0), r: d.r + (patch.r ?? 0), c: d.c + (patch.c ?? 0), t: d.t + (patch.t ?? 0), ...(words.length ? { words } : {}), ...(paths ? { paths } : {}) },
     },
   };
 }

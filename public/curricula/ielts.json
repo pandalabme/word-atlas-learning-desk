@@ -1,0 +1,13 @@
+{
+  "id": "ielts",
+  "version": 1,
+  "name": "IELTS 全量路径",
+  "description": "按统一词典原有顺序学习全部词条。",
+  "attribution": {
+    "curator": "词光",
+    "official": false,
+    "note": "词光整理，非官方词表"
+  },
+  "selection": { "mode": "all" },
+  "domains": []
+}

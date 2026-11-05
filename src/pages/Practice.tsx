@@ -1,6 +1,6 @@
 import { Headphones, Keyboard, RotateCcw, Type } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { prefetch, useAtlas } from "../atlas/context";
+import { prefetch, useAtlas, useCurriculum } from "../atlas/context";
 import type { Entry } from "../atlas/types";
 import { play, stopAudio } from "../lib/audio";
 import { cue } from "../lib/sound";
@@ -27,6 +27,7 @@ const SOURCES: [Source, string][] = [
 
 export function Practice() {
   const atlas = useAtlas();
+  const curriculum = useCurriculum();
   const progress = useStore((s) => s.progress);
   const startLevel = useStore((s) => s.settings.startLevel);
   const [mode, setMode] = useState<Mode>("word");
@@ -38,9 +39,9 @@ export function Practice() {
       .sort((a, b) => (b[1].last ?? 0) - (a[1].last ?? 0))
       .map(([id]) => id);
     const ids =
-      source === "recent" ? learned : source === "mistakes" ? progress.mistakes : source === "saved" ? progress.bookmarks : atlas.words.filter((w) => w.cefr >= startLevel).slice(0, 400).map((w) => w.id);
-    return ids.filter((id) => atlas.byId.has(id));
-  }, [atlas, progress.cards, progress.mistakes, progress.bookmarks, source, startLevel]);
+      source === "recent" ? learned : source === "mistakes" ? progress.mistakes : source === "saved" ? progress.bookmarks : curriculum.words.filter((w) => w.cefr >= startLevel).slice(0, 400).map((w) => w.id);
+    return ids.filter((id) => atlas.byId.has(id) && curriculum.byId.has(id));
+  }, [atlas, curriculum, progress.cards, progress.mistakes, progress.bookmarks, source, startLevel]);
 
   const start = async () => {
     const ids = shuffle(pool.slice(0, 60), hashSeed(String(Date.now()))).slice(0, 10);

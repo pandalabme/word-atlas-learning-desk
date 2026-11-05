@@ -1,8 +1,10 @@
 import type { Atlas, Entry, IndexRow, WordRef } from "./types";
 import { MEDIA } from "./types";
+import { parseExamTagsSidecar, type ExamTag } from "./examTags";
+import { resolveMediaBase } from "./mediaBase";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const MEDIA_BASE = (import.meta.env.VITE_WORD_ATLAS_MEDIA_BASE_URL?.trim() || "https://0xlei.tech/words").replace(/\/$/, "");
+const MEDIA_BASE = resolveMediaBase(BASE, import.meta.env.VITE_WORD_ATLAS_MEDIA_BASE_URL);
 const url = (p: string) => `${BASE}/atlas/${p}`;
 const mediaUrl = (p: string) => `${MEDIA_BASE}/atlas/${p}`;
 
@@ -19,9 +21,12 @@ interface IndexFile {
 }
 
 export async function loadOpenAtlas(): Promise<Atlas> {
-  const res = await fetch(url("index.json"));
+  const [res, tagsRes] = await Promise.all([fetch(url("index.json")), fetch(url("exam-tags.json"))]);
   if (!res.ok) throw new Error(`词库索引加载失败（${res.status}）`);
   const idx = (await res.json()) as IndexFile;
+  let examTags = new Map<string, ExamTag[]>();
+  if (tagsRes.ok) examTags = parseExamTagsSidecar(await tagsRes.json(), new Set(idx.words.map((row) => row[0])));
+  else if (tagsRes.status !== 404) throw new Error(`考试标签加载失败（${tagsRes.status}）`);
   const words: WordRef[] = idx.words.map((r, order) => ({
     id: r[0],
     word: r[1],
@@ -30,6 +35,7 @@ export async function loadOpenAtlas(): Promise<Atlas> {
     cefr: r[4],
     topic: r[5],
     media: r[6],
+    examTags: examTags.get(r[0]) ?? [],
     order,
   }));
   const byId = new Map(words.map((w) => [w.id, w]));
@@ -114,9 +120,9 @@ export async function loadPrivateAtlas(open: Atlas | null): Promise<Atlas | null
   if (!res.ok || !(res.headers.get("content-type") || "").includes("json")) return null;
   const cat = (await res.json()) as { id: string; name: string; words: PrivateWord[] };
   const entries = new Map<string, Entry>();
-  const twins = new Map(open?.words.map((o) => [o.word.toLowerCase(), o]) ?? []);
+  const twins = new Map(open?.words.map((o) => [o.word.normalize("NFC").trim().toLowerCase(), o]) ?? []);
   const words: WordRef[] = cat.words.map((w, order) => {
-    const twin = twins.get(w.word.toLowerCase());
+    const twin = twins.get(w.word.normalize("NFC").trim().toLowerCase());
     const pos = (w.meaning.match(/·\s*([a-z]+\.)\s*$/) || [])[1] || "";
     const zh = w.meaning.replace(/\s*·\s*[a-z]+\.\s*$/, "");
     entries.set(w.id, {
@@ -144,6 +150,7 @@ export async function loadPrivateAtlas(open: Atlas | null): Promise<Atlas | null
       cefr: twin?.cefr ?? 2,
       topic: twin?.topic ?? 16,
       media: entries.get(w.id)!.m,
+      examTags: twin?.examTags ?? [],
       order,
     };
   });

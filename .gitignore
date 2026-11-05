@@ -1,6 +1,8 @@
-node_modules/
-dist/
-.vite/
-*.tsbuildinfo
 .local/
-
+dist/
+node_modules/
+*.tsbuildinfo
+PUBLIC_MANIFEST.json
+.env.local
+.env.*.local
+scripts/api.txt

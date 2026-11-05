@@ -1,5 +1,5 @@
 import type { Settings } from "../store/store";
-import { emptyProgress, sanitizeProgress, sanitizeSettings, type DayStat, type Progress, type TypingRound } from "../store/store";
+import { emptyProgress, sanitizeProgress, sanitizeSettings, type PathDayStat, type Progress, type TypingRound } from "../store/store";
 import { Rating, review, type CardState, type Grade } from "../store/srs";
 import type { RemoteSyncConfig } from "./remoteSync";
 
@@ -208,10 +208,25 @@ function validateReply(value: unknown): { cursor: number; events: ServerSyncEven
   return reply as unknown as { cursor: number; events: ServerSyncEvent[]; has_more: boolean };
 }
 
-function addStats(progress: Progress, day: string, delta: Partial<DayStat>): Progress {
+function addStats(progress: Progress, day: string, delta: Partial<PathDayStat>, curriculumId?: string): Progress {
   const validDelta = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
   const before = progress.days[day] ?? { n: 0, r: 0, c: 0, t: 0 };
   const words = [...new Set([...(before.words ?? []), ...(delta.words ?? [])])].slice(0, 512);
+  const existingPaths = before.paths ?? (before.n || before.r || before.c || before.t ? { ielts: { n: before.n, r: before.r, c: before.c, t: before.t, ...(before.words?.length ? { words: before.words } : {}) } } : {});
+  const beforePath = curriculumId ? existingPaths[curriculumId] ?? { n: 0, r: 0, c: 0, t: 0 } : null;
+  const pathWords = beforePath ? [...new Set([...(beforePath.words ?? []), ...(delta.words ?? [])])].slice(0, 512) : [];
+  const paths = beforePath && curriculumId
+    ? {
+        ...existingPaths,
+        [curriculumId]: {
+          n: Math.max(0, beforePath.n + validDelta(delta.n)),
+          r: Math.max(0, beforePath.r + validDelta(delta.r)),
+          c: Math.max(0, beforePath.c + validDelta(delta.c)),
+          t: Math.max(0, beforePath.t + validDelta(delta.t)),
+          ...(pathWords.length ? { words: pathWords } : {}),
+        },
+      }
+    : before.paths;
   return {
     ...progress,
     days: {
@@ -222,6 +237,7 @@ function addStats(progress: Progress, day: string, delta: Partial<DayStat>): Pro
         c: Math.max(0, before.c + validDelta(delta?.c)),
         t: Math.max(0, before.t + validDelta(delta?.t)),
         ...(words.length ? { words } : {}),
+        ...(paths ? { paths } : {}),
       },
     },
   };
@@ -292,7 +308,12 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
       if (delta && typeof delta === "object" && !Array.isArray(delta)) {
         const stats = delta as Record<string, unknown>;
         if (typeof stats.day_key === "string" && /^\d{4}-\d{2}-\d{2}$/.test(stats.day_key) && stats.delta && typeof stats.delta === "object" && !Array.isArray(stats.delta))
-          progress = addStats(progress, stats.day_key, { ...(stats.delta as Partial<DayStat>), ...(typeof wordId === "string" ? { words: [wordId] } : {}) });
+          progress = addStats(
+            progress,
+            stats.day_key,
+            { ...(stats.delta as Partial<PathDayStat>), ...(typeof wordId === "string" ? { words: [wordId] } : {}) },
+            typeof payload.curriculum_id === "string" ? payload.curriculum_id : undefined,
+          );
       }
     } else if (event.kind === "bookmark") {
       const wordId = payload.word_id;
@@ -303,7 +324,7 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
     } else if (event.kind === "day_delta") {
       const day = payload.day_key;
       if (typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day) && payload.delta && typeof payload.delta === "object" && !Array.isArray(payload.delta))
-        progress = addStats(progress, day, payload.delta as Partial<DayStat>);
+        progress = addStats(progress, day, payload.delta as Partial<PathDayStat>, typeof payload.curriculum_id === "string" ? payload.curriculum_id : undefined);
     } else if (event.kind === "typing") {
       const records = sanitizeProgress({ version: 2, typing: [payload.round] }, progress.datasetId).typing;
       if (records.length && !progress.typing.some((item) => typingKey(item) === typingKey(records[0])))

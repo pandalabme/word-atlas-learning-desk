@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "batchId": "pipeline-test-abate",
+  "planHash": "5cb5da2dea65f72411a9725586bc2d177f6f404487eb955ff447f4c910f30ac4",
+  "files": {
+    "img/abate.webp": {
+      "sha256": "a3ee1bee70288ce7d3a6a833f61ccf4a22863e9e4afa6369c670475e8dd58b61",
+      "size": 107714,
+      "mock": false
+    },
+    "thumb/abate.webp": {
+      "sha256": "09ad532cdaefead1d544a7d57d2904c80785ab8fb38aef62ab418366247bd5f6",
+      "size": 10964,
+      "mock": false
+    },
+    "audio/uk/abate.mp3": {
+      "sha256": "f9dbce1df7d5b4fc952c28fb965b035df485e442d7f28891846a0b53827094b4",
+      "size": 8193,
+      "mock": false
+    },
+    "audio/us/abate.mp3": {
+      "sha256": "ebc897a30a9c9f1bc09f876cdc3b1b0532dda8d189cf9f670c7ecc58f5f0f8ec",
+      "size": 8820,
+      "mock": false
+    },
+    "audio/ex/abate.mp3": {
+      "sha256": "1f3d1134614c55b3f8724e888d6740d5daf98c444634971d46add9c3021e24ec",
+      "size": 22403,
+      "mock": false
+    },
+    "audio/ex2/abate.mp3": {
+      "sha256": "4db1bb280616335633dec96f0236ff1cd1f11f1c82c7cde776698b454b261acd",
+      "size": 26792,
+      "mock": false
+    }
+  }
+}

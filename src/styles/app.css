@@ -425,6 +425,10 @@ code {
   background: var(--ochre-soft);
   color: var(--ochre);
 }
+.chip-exam {
+  background: var(--sky-soft);
+  color: var(--sky);
+}
 .chip-status.is-done {
   background: var(--sage-soft);
   color: var(--sage-ink);

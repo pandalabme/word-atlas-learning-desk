@@ -1,5 +1,7 @@
 export type Accent = "uk" | "us";
 
+import type { ExamTag } from "./examTags";
+
 /** Compact row from atlas/index.json: [id, word, zh, ipa, cefr, topic, media]. */
 export type IndexRow = [string, string, string, string, number, number, number];
 
@@ -46,6 +48,8 @@ export interface WordRef {
   cefr: number;
   topic: number;
   media: number;
+  /** Curated exam categories from the optional public atlas sidecar. */
+  examTags: ExamTag[];
   /** Position in the learning path. */
   order: number;
 }

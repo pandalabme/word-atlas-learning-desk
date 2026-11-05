@@ -1,0 +1,9 @@
+{
+  "id": "zk-ecdict",
+  "version": 1,
+  "name": "中考词汇路径",
+  "description": "从统一词典中选择带有 ECDICT zk 分类标签的词条。分类仅作非官方复习参考。",
+  "attribution": { "curator": "词光", "official": false, "note": "词光整理，非官方词表" },
+  "selection": { "mode": "filter", "filter": { "examTags": ["zk"] } },
+  "domains": []
+}

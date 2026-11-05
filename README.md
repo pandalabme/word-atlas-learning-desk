@@ -1,12 +1,12 @@
 <div align="center">
 
-<a href="https://0xlei.tech/words/"><img src="docs/assets/cover-v2.jpg" alt="词光 Word Atlas — 一词一画，点亮雅思" width="100%"></a>
+<a href="https://0xlei.tech/words/"><img src="docs/assets/cover-v2.jpg" alt="词光 Word Atlas — 一词一画，点亮英语" width="100%"></a>
 
 # 词光 · Word Atlas
 
-**把单词变成画面，让复习有迹可循。**
+**把单词变成画面，在统一词典上选择自己的学习路径。**
 
-7,298 个雅思词条 · 原创插画 · 英美发音 · FSRS 间隔复习
+7,303 个统一词条 · IELTS 全量路径 · ECDICT TOEFL 标签路径 · FSRS 间隔复习
 
 [**立即体验 ↗**](https://0xlei.tech/words/)　 /　 [48 秒介绍](docs/assets/launch.mp4)　 /　 [下载词库](data/)　 /　 [English](README.en.md)
 
@@ -24,11 +24,13 @@
 
 ---
 
-词光是一款以插画和语境为核心的雅思背词应用。看画面理解词义，听发音建立联系，再用主动回忆和间隔复习巩固记忆。无需账号，学习进度保存在自己的设备上。
+词光是一款以插画和语境为核心的词汇学习应用。统一词典只保存一份词条、插画和发音；IELTS 与 TOEFL 学习路径在其上选择不同的有序词集，并共享同一词条的 FSRS 记忆状态。无需账号，学习进度保存在自己的设备上。
 
 > **版本说明**：这个仓库提供词光的开源基础版及配套数据集。在线网站独立迭代，功能与仓库可能不同；仓库里的代码和内容分别遵循下方的 MIT / CC BY 4.0 授权。
 
 > **XM3YN 集成版**：当前目录保留上游 Word Atlas 学习体验，并为 `electronic_diy` 增加了可选的多设备增量同步和“今日词发送到 XM3YN 价签”。两项功能相互独立：远程同步默认关闭，可在“我的 → 远程同步”中填写自建 HTTPS 服务、配置 ID 和专用密钥；价签发送则在“今日”页先通过 Chrome Web Bluetooth 配对，再把当天已经学习和仍待学习的计划词直接写入价签，不需要本机 HTTP 网关或同步密钥。复习、收藏、每日统计、打字练习与学习设置以幂等事件同步，进行中的答题会话仍只保存在本机。服务端配置见 [`../pc-display-gateway/README.md`](../pc-display-gateway/README.md#word-atlas-同步接口)。
+
+> **学习路径**：`IELTS 全量路径` 延续现有体验，覆盖全部 7,303 个词条；`TOEFL 词汇路径` 从统一词典中选择带有 ECDICT `toefl` 分类标签的 3,434 个词。两者均为非官方复习路径。切换路径不会复制或清空学习卡片；每日新词额度、路径统计、图鉴、星图、练习和价签词表按当前路径计算。ECDICT 的 8 类考试标签还可用于扩展中考、高考、四六级、考研、IELTS 和 GRE 路径，详见 [考试标签说明](docs/ecdict-exam-tags.md)。
 
 [产品预览](#产品预览) · [学习方式](#学习方式) · [本地运行](#本地运行) · [开放数据](#开放数据) · [参与贡献](#参与贡献)
 
@@ -75,6 +77,8 @@
 
 **本地优先。** 无需注册；看过的词条与媒体可缓存供离线使用。换设备前，请先导出进度备份。
 
+顶部“学习内容”选择器还提供八类 ECDICT 标签路径：中考、高考、CET-4、CET-6、考研、IELTS、TOEFL 和 GRE。选择路径后，今日计划、学习页、词库和星图都会只使用对应标签的词条；原有的“IELTS 全量路径”仍保留。
+
 <details>
 <summary><b>听发音、例句与环境声样本</b></summary>
 
@@ -88,7 +92,7 @@
 | 🇺🇸 美音 | [abandon /əˈbændən/](https://0xlei.tech/words/atlas/audio/us/abandon.mp3) |
 | 📖 例句朗读 | [We had to abandon our car in the snow.](https://0xlei.tech/words/atlas/audio/ex/abandon.mp3) |
 
-全部 7,298 个词都有英音、美音和例句朗读，还有 1,011 个重点词的第二条例句也配了朗读。
+原有 7,298 个词都有英音、美音和例句朗读，还有 1,011 个重点词的第二条例句也配了朗读；新增的 5 个文本 MVP 词条暂时使用无媒体占位卡片。
 
 ### 环境声与交互声音
 
@@ -126,6 +130,7 @@ npm run dev
 
 ```bash
 npm test             # 单元测试
+npm run check:curricula # 学习路径与统一词典一致性校验
 npm run check:readings # 阅读集授权与结构校验
 npm run check:atlas  # 词库结构与媒体校验
 npm run build        # 构建到 dist/
@@ -141,10 +146,11 @@ npm run build        # 构建到 dist/
 
 | 资源 | 开源版内容 | 入口 |
 | :--- | :--- | :--- |
-| 词条 | **7,298** 条，CEFR A1–C2、19 个话题 | [JSON](data/word-atlas.json) · [CSV](data/word-atlas.csv) |
-| 例句 | **14,596** 条，日常与雅思语境，附中文翻译 | [字段说明](docs/dataset.md) |
+| 词条 | **7,303** 条，CEFR A1–C2、19 个话题 | [JSON](data/word-atlas.json) · [CSV](data/word-atlas.csv) |
+| 例句 | **14,606** 条，日常与雅思语境，附中文翻译 | [字段说明](docs/dataset.md) |
 | 插画 | **7,298** 幅，512 px WebP，另有缩略图 | [图片目录](public/atlas/img/) |
 | 录音 | **22,905** 段，英音、美音与例句朗读 | [音频目录](public/atlas/audio/) |
+| 考试标签 | ECDICT 的 `zk`、`gk`、`cet4`、`cet6`、`ky`、`ielts`、`toefl`、`gre` 分类映射 | [说明与复现方法](docs/ecdict-exam-tags.md) |
 
 ```python
 import json
@@ -180,7 +186,7 @@ b2_environment = [w for w in words if w["cefr"] == "B2" and w["topic"] == "envir
 
 ### 内容来源与局限
 
-释义、例句、插画和录音为本项目生成：文字与插画使用生成式 AI，语音使用 ElevenLabs。内容经过自动结构与一致性校验，**尚未逐条人工审校**，可能出现释义、例句、插画或发音错误。它不是官方雅思词表，也不承诺提分。
+释义、例句、插画和录音为本项目生成：文字与插画使用生成式 AI，语音使用 ElevenLabs。内容经过自动结构与一致性校验，**尚未逐条人工审校**，可能出现释义、例句、插画或发音错误。考试分类标签来自 ECDICT，IELTS 与 TOEFL 路径都不是官方词表，也不承诺提分。
 
 [内容生成流程](docs/pipeline.md) · [记忆模型](docs/learning-model.md) · [生成脚本](scripts/atlas/)
 
