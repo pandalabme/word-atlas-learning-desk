@@ -9,8 +9,8 @@ const MAX_PACKAGE_BYTES = 2_568;
 const MAX_CHUNK_BYTES = 240;
 const ACTIVE_START_MINUTE = 8 * 60;
 const ACTIVE_END_MINUTE = 24 * 60;
-const SLOT_SECONDS = 5 * 60;
-const WORD = /^[a-z]+(?:[-'][a-z]+)*$/;
+const SLOT_SECONDS = 3 * 60;
+const LABEL_TEXT = /^[\x20-\x7e]+$/;
 
 const enum WordCommand {
   Capabilities = 0x10,
@@ -78,6 +78,11 @@ interface ZonedParts {
   weekday: number;
 }
 
+export function isLabelText(word: string): boolean {
+  const bytes = new TextEncoder().encode(word);
+  return LABEL_TEXT.test(word) && bytes.length >= 1 && bytes.length <= 31;
+}
+
 /** Encode the frozen WCDK v1 package used by the installed word-carousel firmware. */
 export function encodeLabelDeck(
   words: readonly string[],
@@ -92,8 +97,8 @@ export function encodeLabelDeck(
   const encoder = new TextEncoder();
   const encoded = normalized.map((word) => {
     const bytes = encoder.encode(word);
-    if (!WORD.test(word) || bytes.length < 1 || bytes.length > 31) {
-      throw new Error("价签仅支持不超过 31 个字符的英文单词。");
+    if (!isLabelText(word)) {
+      throw new Error("价签仅支持 1 到 31 个可打印 ASCII 字符。");
     }
     return bytes;
   });

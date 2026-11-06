@@ -3,7 +3,6 @@ import type { WordRef } from "../atlas/types";
 const CONFIG_KEY = "word-atlas:remote-sync";
 const MAX_SYNC_BYTES = 5 * 1024 * 1024;
 const WORD_ID = /^[A-Za-z0-9._:-]{1,128}$/;
-const WORD = /^[a-z]+(?:[-'][a-z]+)*$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export interface RemoteSyncConfig {
@@ -136,7 +135,7 @@ export function buildLabelBody(profileId: string, datasetId: string, words: Labe
   const texts = new Set<string>();
   for (const word of words) {
     if (!WORD_ID.test(word.id)) throw new Error("词条 ID 含有不安全字符。");
-    if (!WORD.test(word.text) || word.text.length > 31) throw new Error("价签仅支持不超过 31 个字符的英文单词。");
+    if (!/^[\x20-\x7e]+$/.test(word.text) || word.text.length < 1 || word.text.length > 31) throw new Error("价签仅支持 1 到 31 个可打印 ASCII 字符。");
     if (ids.has(word.id) || texts.has(word.text.toLocaleLowerCase())) throw new Error("价签单词和词条 ID 不能重复。");
     ids.add(word.id);
     texts.add(word.text.toLocaleLowerCase());

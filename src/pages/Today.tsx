@@ -47,9 +47,9 @@ export function Today() {
   const labelBluetooth = useRef<LabelBluetooth | null>(null);
   if (!labelBluetooth.current) labelBluetooth.current = new LabelBluetooth();
   const plan = useMemo(() => todayPlan(atlas, curriculum, progress, settings), [atlas, curriculum, progress, settings]);
-  const labelIds = labelIdsForToday(progress, [...plan.due, ...plan.fresh], new Date(), 512)
-    .filter((id) => curriculum.byId.has(id))
-    .slice(0, 64);
+  const allLabelIds = labelIdsForToday(progress, [...plan.due, ...plan.fresh], new Date(), 512)
+    .filter((id) => curriculum.byId.has(id));
+  const labelIds = allLabelIds.slice(0, 64);
   // Warm the first cards of today's journey so the session opens instantly.
   const firstIds = [...plan.due.slice(0, 4), ...plan.fresh.slice(0, 6)].join(",");
   useEffect(() => {
@@ -106,21 +106,19 @@ export function Today() {
   };
 
   const sendLabelWords = async () => {
-    const words = labelIds
-      .map((id) => atlas.byId.get(id)?.word)
-      .filter((word): word is string => !!word);
-    if (!words.length) return;
+    if (!labelIds.length) return;
     setSendingLabels(true);
     setLabelStatus("正在准备价签单词包…");
     try {
       const bluetooth = labelBluetooth.current;
       if (!bluetooth) throw new Error("价签连接尚未初始化。");
+      const words = labelIds.map((id) => atlas.byId.get(id)?.word).filter((word): word is string => !!word);
       await bluetooth.syncWords(words, ({ phase, confirmedBytes, totalBytes }) => {
         if (phase === "preparing") setLabelStatus("正在检查价签单词固件…");
         else if (phase === "transferring") setLabelStatus(`正在发送单词包 ${confirmedBytes}/${totalBytes} 字节…`);
         else if (phase === "committing") setLabelStatus("正在启用新的价签单词包…");
       });
-      setLabelStatus(`价签同步成功：已发送 ${words.length} 个单词。`);
+      setLabelStatus(`价签同步成功：已发送 ${words.length} 个词条。`);
     } catch (error) {
       setLabelStatus(error instanceof Error ? error.message : "价签同步失败。");
     } finally {
@@ -218,10 +216,10 @@ export function Today() {
               <Bluetooth size={18} /> {pairingLabel ? "正在配对…" : labelConnected ? "断开价签" : "连接价签"}
             </button>
             <button className="btn btn-glass" onClick={() => void sendLabelWords()} disabled={!labelConnected || sendingLabels || labelIds.length === 0}>
-              <Printer size={18} /> {sendingLabels ? "发送中…" : `发送 ${labelIds.length} 个单词到价签`}
+              <Printer size={18} /> {sendingLabels ? "发送中…" : `发送 ${labelIds.length} 个词条到价签`}
             </button>
           </div>
-          {plan.due.length + plan.fresh.length > 64 && <p className="journey-label-note">本次最多发送 64 个单词。</p>}
+          {allLabelIds.length > 64 && <p className="journey-label-note">本次最多发送 64 个词条。</p>}
           {labelStatus && <p className="journey-label-status" role="status" aria-live="polite">{labelStatus}</p>}
         </div>
       </section>
