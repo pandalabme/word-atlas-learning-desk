@@ -49,7 +49,7 @@ export function Today() {
   const plan = useMemo(() => todayPlan(atlas, curriculum, progress, settings), [atlas, curriculum, progress, settings]);
   const allLabelIds = labelIdsForToday(progress, [...plan.due, ...plan.fresh], new Date(), 512)
     .filter((id) => curriculum.byId.has(id));
-  const labelIds = allLabelIds.slice(0, 64);
+  const labelIds = allLabelIds.slice(0, 150);
   // Warm the first cards of today's journey so the session opens instantly.
   const firstIds = [...plan.due.slice(0, 4), ...plan.fresh.slice(0, 6)].join(",");
   useEffect(() => {
@@ -219,7 +219,7 @@ export function Today() {
               <Printer size={18} /> {sendingLabels ? "发送中…" : `发送 ${labelIds.length} 个词条到价签`}
             </button>
           </div>
-          {allLabelIds.length > 64 && <p className="journey-label-note">本次最多发送 64 个词条。</p>}
+          {allLabelIds.length > 150 && <p className="journey-label-note">本次最多发送 150 个词条。</p>}
           {labelStatus && <p className="journey-label-status" role="status" aria-live="polite">{labelStatus}</p>}
         </div>
       </section>

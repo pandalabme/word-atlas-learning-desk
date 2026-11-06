@@ -4,12 +4,13 @@ const EPD_SERVICE_UUID = "13187b10-eba9-a3ba-044e-83d3217d9a38";
 const EPD_CHARACTERISTIC_UUID = "4b646063-6264-f3a7-8941-e65356ea82fe";
 
 const HEADER_BYTES = 32;
-const MAX_CARDS = 64;
-const MAX_PACKAGE_BYTES = 2_568;
+const MAX_CARDS = 150;
+const MAX_PACKAGE_BYTES = 4_064;
 const MAX_CHUNK_BYTES = 240;
 const ACTIVE_START_MINUTE = 8 * 60;
 const ACTIVE_END_MINUTE = 24 * 60;
 const SLOT_SECONDS = 3 * 60;
+const WORD_PROTOCOL_VERSION = 2;
 const LABEL_TEXT = /^[\x20-\x7e]+$/;
 
 const enum WordCommand {
@@ -90,7 +91,7 @@ export function encodeLabelDeck(
   timeZone = "Asia/Shanghai",
 ): Uint8Array {
   if (words.length < 1 || words.length > MAX_CARDS) {
-    throw new Error("价签单词数量必须为 1 到 64 个。");
+    throw new Error("价签单词数量必须为 1 到 150 个。");
   }
   const normalized = words.map((word) => word.toLocaleLowerCase("en-US"));
   if (new Set(normalized).size !== normalized.length) throw new Error("价签单词不能重复。");
@@ -234,7 +235,7 @@ export class LabelBluetooth {
     const schema = (capabilities.value1 >>> 16) & 0xff;
     const protocol = (capabilities.value1 >>> 24) & 0xff;
     if (maxPackage < totalLength || maxPackage > MAX_PACKAGE_BYTES) throw new Error("价签单词包容量不兼容。");
-    if (maxChunk < 1 || maxChunk > MAX_CHUNK_BYTES || schema !== 1 || protocol !== 1) {
+    if (maxChunk < 1 || maxChunk > MAX_CHUNK_BYTES || schema !== 1 || protocol !== WORD_PROTOCOL_VERSION) {
       throw new Error("价签单词固件协议版本不兼容。");
     }
 

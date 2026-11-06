@@ -2,6 +2,7 @@ import type { WordRef } from "../atlas/types";
 
 const CONFIG_KEY = "word-atlas:remote-sync";
 const MAX_SYNC_BYTES = 5 * 1024 * 1024;
+const MAX_LABEL_CARDS = 150;
 const WORD_ID = /^[A-Za-z0-9._:-]{1,128}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -129,7 +130,7 @@ export function buildSyncBody(profileId: string, deviceId: string, datasetId: st
 }
 
 export function buildLabelBody(profileId: string, datasetId: string, words: LabelWord[], requestId = crypto.randomUUID()) {
-  if (words.length < 1 || words.length > 64) throw new Error("每次价签同步需选择 1 到 64 个单词。");
+  if (words.length < 1 || words.length > MAX_LABEL_CARDS) throw new Error("每次价签同步需选择 1 到 150 个单词。");
   if (!UUID.test(requestId)) throw new Error("价签请求 ID 格式不正确。");
   const ids = new Set<string>();
   const texts = new Set<string>();

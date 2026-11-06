@@ -18,7 +18,7 @@ test("encodes the same WCDK v1 bytes as the verified Python encoder", () => {
 });
 
 test("rejects words that the firmware cannot display", () => {
-  assert.throws(() => encodeLabelDeck([], new Date(), "Asia/Shanghai"), /1 到 64/);
+  assert.throws(() => encodeLabelDeck([], new Date(), "Asia/Shanghai"), /1 到 150/);
   assert.throws(() => encodeLabelDeck(["hello", "hello"], new Date(), "Asia/Shanghai"), /不能重复/);
   assert.throws(() => encodeLabelDeck(["你好"], new Date(), "Asia/Shanghai"), /可打印 ASCII/);
   assert.equal(isLabelText("a".repeat(32)), false);
@@ -113,8 +113,8 @@ class FakeCharacteristic extends EventTarget {
     let value0 = 0;
     let value1 = 0;
     if (command === 0x10) {
-      value0 = 2_568;
-      value1 = (1 << 24) | (1 << 16) | 240;
+      value0 = 4_064;
+      value1 = (2 << 24) | (1 << 16) | 240;
     } else if (command === 0x11) {
       const view = new DataView(request.buffer, request.byteOffset, request.byteLength);
       this.totalLength = view.getUint16(1, true);
