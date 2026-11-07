@@ -39,7 +39,7 @@ const OUTBOX_KEY = (device: string, dataset: string) => `word-atlas:event-outbox
 const CURSOR_KEY = (profile: string, device: string, dataset: string) =>
   `word-atlas:event-cursor:v1:${encodeURIComponent(profile)}:${encodeURIComponent(device)}:${encodeURIComponent(dataset)}`;
 const SESSION_CHECKPOINT_KEY = (profile: string, device: string, dataset: string) =>
-  `word-atlas:event-session-checkpoint:v2:${encodeURIComponent(profile)}:${encodeURIComponent(device)}:${encodeURIComponent(dataset)}`;
+  `word-atlas:event-session-checkpoint:v3:${encodeURIComponent(profile)}:${encodeURIComponent(device)}:${encodeURIComponent(dataset)}`;
 const BOOTSTRAP_KEY = (profile: string, device: string, dataset: string) =>
   `word-atlas:event-bootstrap:v1:${encodeURIComponent(profile)}:${encodeURIComponent(device)}:${encodeURIComponent(dataset)}`;
 const INBOX_KEY = (profile: string, device: string, dataset: string) =>
@@ -299,22 +299,23 @@ function mergeActiveSessions(current: ActiveSession, incoming: ActiveSession): A
   if (current.curriculumId && incoming.curriculumId && current.curriculumId !== incoming.curriculumId)
     return incoming.started > current.started ? incoming : current;
 
+  // Do not take the union of two plans: independently started plans can have
+  // different daily quotas and that would make a journey grow (for example,
+  // from 180 to 280 steps). Keep the shorter plan and only merge completion.
+  const base = current.steps.length <= incoming.steps.length ? current : incoming;
   const completed = new Set([...Object.keys(current.graded), ...Object.keys(incoming.graded)]);
-  const steps = current.steps.filter((step, index) => index < current.index || !completed.has(step.id));
-  const present = new Set(steps.map((step) => step.id));
-  const additions = incoming.steps.slice(incoming.index).filter((step) => !completed.has(step.id) && !present.has(step.id));
-  const mergedSteps = [...steps, ...additions];
-  const index = Math.min(current.index, mergedSteps.length);
-  const newIds = [...new Set([...current.newIds, ...incoming.newIds])].filter((id) => !completed.has(id));
-  const reviewIds = [...new Set([...current.reviewIds, ...incoming.reviewIds])].filter((id) => !completed.has(id));
+  const steps = base.steps.filter((step, index) => index < base.index || !completed.has(step.id));
+  const index = Math.min(base.index, steps.length);
+  const newIds = base.newIds.filter((id) => !completed.has(id));
+  const reviewIds = base.reviewIds.filter((id) => !completed.has(id));
   return {
-    ...current,
-    steps: mergedSteps,
+    ...base,
+    steps,
     index,
     graded: { ...incoming.graded, ...current.graded },
     newIds,
     reviewIds,
-    ...(index >= mergedSteps.length ? { finished: current.finished ?? incoming.finished ?? Date.now() } : { finished: undefined }),
+    ...(index >= steps.length ? { finished: base.finished ?? current.finished ?? incoming.finished ?? Date.now() } : { finished: undefined }),
   };
 }
 

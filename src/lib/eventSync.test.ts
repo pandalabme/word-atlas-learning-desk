@@ -117,6 +117,31 @@ test("independently started journeys merge completed words instead of replacing 
   assert.deepEqual(merged.progress.session?.newIds, ["c"]);
 });
 
+test("journey merge never appends a larger remote plan", () => {
+  const initial = emptySyncSnapshot("word-atlas-open");
+  initial.progress.session = {
+    id: "local-session", started: 100,
+    steps: [{ id: "a", kind: "intro" }, { id: "a", kind: "meaning", options: ["a"] }],
+    index: 0, graded: {}, newIds: ["a"], reviewIds: [], curriculumId: "ielts",
+  };
+  const remote: SyncEvent = {
+    event_id: uid(47), occurred_at: "2026-01-01T00:00:06.000Z", kind: "session",
+    payload: {
+      session: {
+        id: "remote-session", started: 200,
+        steps: [
+          { id: "a", kind: "intro" }, { id: "a", kind: "meaning", options: ["a"] },
+          { id: "b", kind: "intro" }, { id: "b", kind: "meaning", options: ["b"] },
+        ],
+        index: 0, graded: {}, newIds: ["a", "b"], reviewIds: [], curriculumId: "ielts",
+      },
+    },
+  };
+  const merged = replaySyncEvents(initial, [serverEvent(1, "phone", remote)], "pc");
+  assert.equal(merged.progress.session?.steps.length, 2);
+  assert.deepEqual(merged.progress.session?.newIds, ["a"]);
+});
+
 test("remote reviews remove already completed words from the pending local journey", () => {
   const initial = emptySyncSnapshot("word-atlas-open");
   initial.progress.session = {
