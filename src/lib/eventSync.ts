@@ -1,9 +1,9 @@
 import type { Settings } from "../store/store";
-import { emptyProgress, sanitizeProgress, sanitizeSettings, type DayStat, type Progress, type TypingRound } from "../store/store";
+import { emptyProgress, sanitizeProgress, sanitizeSettings, type ActiveSession, type PathDayStat, type Progress, type TypingRound, type WordStatus } from "../store/store";
 import { Rating, review, type CardState, type Grade } from "../store/srs";
 import type { RemoteSyncConfig } from "./remoteSync";
 
-export type SyncEventKind = "bootstrap" | "review" | "bookmark" | "day_delta" | "typing" | "settings";
+export type SyncEventKind = "bootstrap" | "review" | "bookmark" | "day_delta" | "typing" | "settings" | "session" | "status";
 export interface SyncEvent {
   event_id: string;
   occurred_at: string;
@@ -107,7 +107,7 @@ function makeBootstrapEvent(payload: Record<string, unknown>, idFactory: () => s
   return { event_id: idFactory(), occurred_at: occurredAt, kind: "bootstrap", payload };
 }
 
-/** Creates bounded bootstrap events. Session state and device credentials are deliberately omitted. */
+/** Creates bounded bootstrap events. Device credentials are deliberately omitted. */
 export function buildBootstrapEvents(
   progress: Progress,
   settings: Settings,
@@ -142,6 +142,11 @@ export function buildBootstrapEvents(
   chunks(Object.entries(progress.days).map(([day, stats]) => [day, stats]), "days");
   chunks(progress.mistakes, "mistakes");
   chunks(progress.typing, "typing");
+  chunks(Object.entries(progress.manualStatuses), "statuses");
+  // A session is a resumable journey, so include its current checkpoint in the
+  // initial sync. A null session is intentionally omitted: a device that has
+  // never started a journey must not clear another device's active journey.
+  if (progress.session) push({ session: progress.session });
   push({ settings: omitLocalSettings(settings) });
   return events;
 }
@@ -198,7 +203,7 @@ function validateReply(value: unknown): { cursor: number; events: ServerSyncEven
       typeof item.device_id !== "string" ||
       typeof item.occurred_at !== "string" ||
       !Number.isFinite(Date.parse(item.occurred_at)) ||
-      !["bootstrap", "review", "bookmark", "day_delta", "typing", "settings"].includes(String(item.kind)) ||
+      !["bootstrap", "review", "bookmark", "day_delta", "typing", "settings", "session", "status"].includes(String(item.kind)) ||
       !item.payload ||
       typeof item.payload !== "object" ||
       Array.isArray(item.payload)
@@ -208,10 +213,25 @@ function validateReply(value: unknown): { cursor: number; events: ServerSyncEven
   return reply as unknown as { cursor: number; events: ServerSyncEvent[]; has_more: boolean };
 }
 
-function addStats(progress: Progress, day: string, delta: Partial<DayStat>): Progress {
+function addStats(progress: Progress, day: string, delta: Partial<PathDayStat>, curriculumId?: string): Progress {
   const validDelta = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
   const before = progress.days[day] ?? { n: 0, r: 0, c: 0, t: 0 };
   const words = [...new Set([...(before.words ?? []), ...(delta.words ?? [])])].slice(0, 512);
+  const existingPaths = before.paths ?? (before.n || before.r || before.c || before.t ? { ielts: { n: before.n, r: before.r, c: before.c, t: before.t, ...(before.words?.length ? { words: before.words } : {}) } } : {});
+  const beforePath = curriculumId ? existingPaths[curriculumId] ?? { n: 0, r: 0, c: 0, t: 0 } : null;
+  const pathWords = beforePath ? [...new Set([...(beforePath.words ?? []), ...(delta.words ?? [])])].slice(0, 512) : [];
+  const paths = beforePath && curriculumId
+    ? {
+        ...existingPaths,
+        [curriculumId]: {
+          n: Math.max(0, beforePath.n + validDelta(delta.n)),
+          r: Math.max(0, beforePath.r + validDelta(delta.r)),
+          c: Math.max(0, beforePath.c + validDelta(delta.c)),
+          t: Math.max(0, beforePath.t + validDelta(delta.t)),
+          ...(pathWords.length ? { words: pathWords } : {}),
+        },
+      }
+    : before.paths;
   return {
     ...progress,
     days: {
@@ -222,6 +242,7 @@ function addStats(progress: Progress, day: string, delta: Partial<DayStat>): Pro
         c: Math.max(0, before.c + validDelta(delta?.c)),
         t: Math.max(0, before.t + validDelta(delta?.t)),
         ...(words.length ? { words } : {}),
+        ...(paths ? { paths } : {}),
       },
     },
   };
@@ -230,6 +251,42 @@ function addStats(progress: Progress, day: string, delta: Partial<DayStat>): Pro
 function validCard(value: unknown, datasetId: string): CardState | undefined {
   const cleaned = sanitizeProgress({ version: 2, cards: { item: value } }, datasetId).cards.item;
   return cleaned;
+}
+
+function validSession(value: unknown, datasetId: string): ActiveSession | null | undefined {
+  if (value === null) return null;
+  const cleaned = sanitizeProgress({ version: 2, session: value }, datasetId).session;
+  return cleaned;
+}
+
+function validWordStatus(value: unknown): value is WordStatus {
+  return value === "learning" || value === "mastered";
+}
+
+/** Remove words completed on another device from the local pending journey. */
+function removeRemotelyReviewedWord(progress: Progress, wordId: string, finishedAt: number): Progress {
+  const session = progress.session;
+  if (!session || session.finished || session.index >= session.steps.length) return progress;
+  const before = session.steps.length;
+  const steps = [
+    ...session.steps.slice(0, session.index),
+    ...session.steps.slice(session.index).filter((step) => step.id !== wordId),
+  ];
+  if (steps.length === before) return progress;
+  const index = Math.min(session.index, steps.length);
+  const pending = session.pending && session.steps[session.index]?.id === wordId ? undefined : session.pending;
+  return {
+    ...progress,
+    session: {
+      ...session,
+      steps,
+      index,
+      newIds: session.newIds.filter((id) => id !== wordId),
+      reviewIds: session.reviewIds.filter((id) => id !== wordId),
+      pending,
+      ...(index >= steps.length ? { finished: session.finished ?? Math.max(1, finishedAt) } : {}),
+    },
+  };
 }
 
 /** Replays only other devices' events in stable time/sequence order. */
@@ -275,6 +332,20 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
         const keys = new Set(progress.typing.map(typingKey));
         progress = { ...progress, typing: [...progress.typing, ...records.filter((item) => !keys.has(typingKey(item)))].slice(-500) };
       }
+      if (Array.isArray(payload.statuses)) {
+        const manualStatuses = { ...progress.manualStatuses };
+        for (const pair of payload.statuses) {
+          if (Array.isArray(pair) && typeof pair[0] === "string" && SAFE_ID.test(pair[0]) && validWordStatus(pair[1])) manualStatuses[pair[0]] = pair[1];
+        }
+        progress = { ...progress, manualStatuses };
+      }
+      if (Object.prototype.hasOwnProperty.call(payload, "session")) {
+        const session = validSession(payload.session, progress.datasetId);
+        // Bootstrap is a baseline. Do not let a device that has no journey
+        // erase a journey already open on this device.
+        if (session && (!progress.session || session.started >= progress.session.started))
+          progress = { ...progress, session };
+      }
       if (payload.settings && typeof payload.settings === "object") settings = sanitizeSettings({ ...settings, ...(payload.settings as Record<string, unknown>) });
     } else if (event.kind === "review") {
       const wordId = payload.word_id;
@@ -284,15 +355,27 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
       if (typeof wordId === "string" && [1, 2, 3, 4].includes(grade as number) && Number.isFinite(time) && typeof retention === "number" && retention >= 0.7 && retention <= 0.97) {
         const existing = progress.cards[wordId];
         // A newer offline review on this device is authoritative for this card; do not rewind FSRS time.
-        if (existing?.last !== undefined && existing.last >= time) continue;
+        if (existing?.last !== undefined && existing.last >= time) {
+          progress = removeRemotelyReviewedWord(progress, wordId, time);
+          continue;
+        }
         progress = { ...progress, cards: { ...progress.cards, [wordId]: review(progress.cards[wordId], grade as Grade, time, retention) } };
         if (grade === Rating.Again) progress = { ...progress, mistakes: [wordId, ...progress.mistakes.filter((id) => id !== wordId)].slice(0, 300) };
+        // The review is authoritative even when the card already existed
+        // locally: it proves that this word was completed on the other device.
+        // Trim only the not-yet-reached part, so local history remains intact.
+        progress = removeRemotelyReviewedWord(progress, wordId, time);
       }
       const delta = payload.stats_delta;
       if (delta && typeof delta === "object" && !Array.isArray(delta)) {
         const stats = delta as Record<string, unknown>;
         if (typeof stats.day_key === "string" && /^\d{4}-\d{2}-\d{2}$/.test(stats.day_key) && stats.delta && typeof stats.delta === "object" && !Array.isArray(stats.delta))
-          progress = addStats(progress, stats.day_key, { ...(stats.delta as Partial<DayStat>), ...(typeof wordId === "string" ? { words: [wordId] } : {}) });
+          progress = addStats(
+            progress,
+            stats.day_key,
+            { ...(stats.delta as Partial<PathDayStat>), ...(typeof wordId === "string" ? { words: [wordId] } : {}) },
+            typeof payload.curriculum_id === "string" ? payload.curriculum_id : undefined,
+          );
       }
     } else if (event.kind === "bookmark") {
       const wordId = payload.word_id;
@@ -303,7 +386,7 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
     } else if (event.kind === "day_delta") {
       const day = payload.day_key;
       if (typeof day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(day) && payload.delta && typeof payload.delta === "object" && !Array.isArray(payload.delta))
-        progress = addStats(progress, day, payload.delta as Partial<DayStat>);
+        progress = addStats(progress, day, payload.delta as Partial<PathDayStat>, typeof payload.curriculum_id === "string" ? payload.curriculum_id : undefined);
     } else if (event.kind === "typing") {
       const records = sanitizeProgress({ version: 2, typing: [payload.round] }, progress.datasetId).typing;
       if (records.length && !progress.typing.some((item) => typingKey(item) === typingKey(records[0])))
@@ -311,9 +394,33 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
     } else if (event.kind === "settings") {
       if (payload.settings && typeof payload.settings === "object" && !Array.isArray(payload.settings))
         settings = sanitizeSettings({ ...settings, ...(payload.settings as Record<string, unknown>) });
+    } else if (event.kind === "session") {
+      if (Object.prototype.hasOwnProperty.call(payload, "session")) {
+        const session = validSession(payload.session, progress.datasetId);
+        const current = progress.session;
+        const sessionId = typeof payload.session_id === "string" ? payload.session_id : undefined;
+        const sessionStarted = typeof payload.session_started === "number" && Number.isFinite(payload.session_started)
+          ? payload.session_started
+          : undefined;
+        if (session !== undefined) {
+          if (session && (!current || session.id === current.id || session.started > current.started))
+            progress = { ...progress, session };
+          else if (session === null && (!current || !sessionId || current.id === sessionId || (sessionStarted !== undefined && current.started <= sessionStarted)))
+            progress = { ...progress, session: null };
+        }
+      }
+    } else if (event.kind === "status") {
+      const wordId = payload.word_id;
+      const status = payload.status;
+      if (typeof wordId === "string" && SAFE_ID.test(wordId) && (status === null || validWordStatus(status))) {
+        const manualStatuses = { ...progress.manualStatuses };
+        if (status === null) delete manualStatuses[wordId];
+        else manualStatuses[wordId] = status;
+        progress = { ...progress, manualStatuses };
+      }
     }
   }
-  return { progress: { ...progress, session: snapshot.progress.session }, settings };
+  return { progress, settings };
 }
 
 function typingKey(round: TypingRound): string {

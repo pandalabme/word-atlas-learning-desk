@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { LabelBluetooth, encodeLabelDeck, type BluetoothProvider } from "./labelBluetooth";
+import { LabelBluetooth, encodeLabelDeck, isLabelText, type BluetoothProvider } from "./labelBluetooth";
 
 const UART_SERVICE = "00001f10-0000-1000-8000-00805f9b34fb";
 const EPD_SERVICE = "13187b10-eba9-a3ba-044e-83d3217d9a38";
@@ -13,14 +13,29 @@ test("encodes the same WCDK v1 bytes as the verified Python encoder", () => {
   );
   assert.equal(
     Buffer.from(payload).toString("hex"),
-    "5743444b01203900000013510000e001e001a0052c0102000200000017e884d20100076c696272617279020008746875727364617900000100",
+    "5743444b01203900000013510000e001e001a005b400020002000000036d9dee0100076c696272617279020008746875727364617900000100",
   );
 });
 
 test("rejects words that the firmware cannot display", () => {
-  assert.throws(() => encodeLabelDeck([], new Date(), "Asia/Shanghai"), /1 到 64/);
+  assert.throws(() => encodeLabelDeck([], new Date(), "Asia/Shanghai"), /1 到 150/);
   assert.throws(() => encodeLabelDeck(["hello", "hello"], new Date(), "Asia/Shanghai"), /不能重复/);
-  assert.throws(() => encodeLabelDeck(["not a word"], new Date(), "Asia/Shanghai"), /英文单词/);
+  assert.throws(() => encodeLabelDeck(["你好"], new Date(), "Asia/Shanghai"), /可打印 ASCII/);
+  assert.equal(isLabelText("a".repeat(32)), false);
+  assert.throws(() => encodeLabelDeck(["a".repeat(32)], new Date(), "Asia/Shanghai"), /可打印 ASCII/);
+});
+
+test("accepts atlas phrases and printable punctuation without filtering", () => {
+  assert.equal(isLabelText("library"), true);
+  assert.equal(isLabelText("mother-in-law"), true);
+  assert.equal(isLabelText("day off"), true);
+  assert.equal(isLabelText("p.m."), true);
+  assert.equal(isLabelText("cheque/check"), true);
+  assert.equal(isLabelText("a\tb"), false);
+  assert.equal(isLabelText("你好"), false);
+  assert.doesNotThrow(() => encodeLabelDeck(["day off", "p.m.", "cheque/check"], new Date(), "Asia/Shanghai"));
+  assert.equal(isLabelText("a".repeat(31)), true);
+  assert.throws(() => encodeLabelDeck(["a".repeat(32)], new Date(), "Asia/Shanghai"), /可打印 ASCII/);
 });
 
 test("pairs first, then transfers and commits a verified word package", async () => {
@@ -98,8 +113,8 @@ class FakeCharacteristic extends EventTarget {
     let value0 = 0;
     let value1 = 0;
     if (command === 0x10) {
-      value0 = 2_568;
-      value1 = (1 << 24) | (1 << 16) | 240;
+      value0 = 4_064;
+      value1 = (2 << 24) | (1 << 16) | 240;
     } else if (command === 0x11) {
       const view = new DataView(request.buffer, request.byteOffset, request.byteLength);
       this.totalLength = view.getUint16(1, true);

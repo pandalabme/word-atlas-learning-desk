@@ -12,16 +12,17 @@ import { layoutGalaxy, TOPIC_COLORS, type GalaxyLayout } from "./layout";
 import { shareGalaxy } from "./share";
 
 const layouts = new WeakMap<object, GalaxyLayout>();
-export function useGalaxyLayout() {
+export function useGalaxyLayout(words?: readonly WordRef[]) {
   const atlas = useAtlas();
   return useMemo(() => {
-    let l = layouts.get(atlas);
+    const key = words ?? atlas;
+    let l = layouts.get(key);
     if (!l) {
-      l = layoutGalaxy(atlas);
-      layouts.set(atlas, l);
+      l = layoutGalaxy({ topics: atlas.topics, words: words ?? atlas.words });
+      layouts.set(key, l);
     }
     return l;
-  }, [atlas]);
+  }, [atlas, words]);
 }
 
 const reduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -45,6 +46,7 @@ export function Galaxy({
   ignite,
   className = "",
   focus,
+  words,
 }: {
   mode?: "full" | "mini";
   /** Words to show as today's gold stars. */
@@ -54,9 +56,11 @@ export function Galaxy({
   className?: string;
   /** Fly to this word once ready. */
   focus?: string | null;
+  /** Optional learning-path subset; omitted to render the unified dictionary. */
+  words?: readonly WordRef[];
 }) {
   const atlas = useAtlas();
-  const layout = useGalaxyLayout();
+  const layout = useGalaxyLayout(words);
   const cards = useStore((s) => s.progress.cards);
   const canvas = useRef<HTMLCanvasElement>(null);
   const engine = useRef<GalaxyEngine | null>(null);
@@ -366,8 +370,9 @@ export function Galaxy({
         <button
           className="icon-btn"
           onClick={() => {
-            const ids = Object.keys(cards);
-            const pick = ids[Math.floor(Math.random() * ids.length)] ?? atlas.words[0].id;
+            const ids = Object.keys(cards).filter((id) => layout.index.has(id));
+            const pick = ids[Math.floor(Math.random() * ids.length)] ?? layout.ids[0];
+            if (!pick) return;
             const i = layout.index.get(pick);
             if (i !== undefined) {
               engine.current?.flyTo(i);

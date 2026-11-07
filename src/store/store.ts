@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { Accent } from "../atlas/types";
-import type { CardState, Grade } from "./srs";
+import { isMastered, type CardState, type Grade } from "./srs";
 
 export type QuizKind = "meaning" | "picture" | "listen" | "spell";
 export type Step = { id: string; kind: "intro" } | { id: string; kind: QuizKind; retry?: boolean; options?: string[] };
@@ -8,6 +8,8 @@ export type Step = { id: string; kind: "intro" } | { id: string; kind: QuizKind;
 export interface ActiveSession {
   id: string;
   started: number;
+  /** Learning path used to construct this session; absent on legacy sessions. */
+  curriculumId?: string;
   steps: Step[];
   index: number;
   /** First-attempt grade per word; retries never change it. */
@@ -19,13 +21,18 @@ export interface ActiveSession {
   finished?: number;
 }
 
-export interface DayStat {
+export interface PathDayStat {
   n: number; // new words met
   r: number; // graded reviews (first attempts)
   c: number; // correct first attempts
   t: number; // active seconds
   /** Stable IDs actually graded on this local calendar day. */
   words?: string[];
+}
+
+export interface DayStat extends PathDayStat {
+  /** Optional per-learning-path breakdown; totals above remain backward compatible. */
+  paths?: Record<string, PathDayStat>;
 }
 
 export interface TypingRound {
@@ -40,6 +47,8 @@ export interface Progress {
   version: 2;
   datasetId: string;
   cards: Record<string, CardState>;
+  /** Optional manual override for the learner-facing atlas status. */
+  manualStatuses: Record<string, WordStatus>;
   bookmarks: string[];
   days: Record<string, DayStat>;
   typing: TypingRound[];
@@ -47,6 +56,8 @@ export interface Progress {
   /** Rolling list of recent mistakes, newest first. */
   mistakes: string[];
 }
+
+export type WordStatus = "learning" | "mastered";
 
 export interface Settings {
   accent: Accent;
@@ -59,12 +70,14 @@ export interface Settings {
   startLevel: number;
   onboarded: boolean;
   dataset: "open" | "private";
+  /** Active learning path. Progress remains keyed by dataset and stable word ID. */
+  curriculum: string;
   ambience: "off" | "stars" | "rain" | "sea" | "forest" | "fire" | "voyage" | "cafe";
   ambienceVolume: number;
   splash: boolean;
 }
 
-export type LocalSyncEventKind = "review" | "bookmark" | "day_delta" | "typing" | "settings";
+export type LocalSyncEventKind = "review" | "bookmark" | "day_delta" | "typing" | "settings" | "session" | "status";
 export interface LocalSyncEventInput {
   kind: LocalSyncEventKind;
   payload: Record<string, unknown>;
@@ -82,6 +95,7 @@ export const defaultSettings: Settings = {
   startLevel: 0,
   onboarded: false,
   dataset: "open",
+  curriculum: "ielts",
   ambience: "stars",
   ambienceVolume: 0.45,
   splash: true,
@@ -91,6 +105,7 @@ export const emptyProgress = (datasetId: string): Progress => ({
   version: 2,
   datasetId,
   cards: {},
+  manualStatuses: {},
   bookmarks: [],
   days: {},
   typing: [],
@@ -147,6 +162,14 @@ export function sanitizeProgress(v: unknown, datasetId: string): Progress {
   const out = emptyProgress(datasetId);
   if (!isObj(v) || v.version !== 2) return out;
   if (isObj(v.cards)) for (const [k, c] of Object.entries(v.cards)) if (validCard(c)) out.cards[k] = c;
+  if (isObj(v.manualStatuses)) {
+    let statusCount = 0;
+    for (const [id, status] of Object.entries(v.manualStatuses))
+      if (statusCount < 20000 && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(id) && (status === "learning" || status === "mastered")) {
+        out.manualStatuses[id] = status;
+        statusCount++;
+      }
+  }
   if (Array.isArray(v.bookmarks)) out.bookmarks = v.bookmarks.filter((x): x is string => typeof x === "string").slice(0, 20000);
   if (Array.isArray(v.mistakes)) out.mistakes = v.mistakes.filter((x): x is string => typeof x === "string").slice(0, 300);
   if (isObj(v.days))
@@ -155,7 +178,16 @@ export function sanitizeProgress(v: unknown, datasetId: string): Progress {
         const words = Array.isArray(d.words)
           ? [...new Set(d.words.filter((id): id is string => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(id)))].slice(0, 512)
           : [];
-        out.days[k] = { n: d.n as number, r: d.r as number, c: d.c as number, t: d.t as number, ...(words.length ? { words } : {}) };
+        const paths: Record<string, PathDayStat> = {};
+        if (isObj(d.paths))
+          for (const [pathId, raw] of Object.entries(d.paths))
+            if (/^[a-z0-9][a-z0-9-]{0,63}$/.test(pathId) && isObj(raw) && num(raw.n, 0) && num(raw.r, 0) && num(raw.c, 0) && num(raw.t, 0)) {
+              const pathWords = Array.isArray(raw.words)
+                ? [...new Set(raw.words.filter((id): id is string => typeof id === "string" && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(id)))].slice(0, 512)
+                : [];
+              paths[pathId] = { n: raw.n as number, r: raw.r as number, c: raw.c as number, t: raw.t as number, ...(pathWords.length ? { words: pathWords } : {}) };
+            }
+        out.days[k] = { n: d.n as number, r: d.r as number, c: d.c as number, t: d.t as number, ...(words.length ? { words } : {}), ...(Object.keys(paths).length ? { paths } : {}) };
       }
   if (Array.isArray(v.typing))
     out.typing = v.typing
@@ -183,6 +215,7 @@ export function sanitizeSettings(v: unknown): Settings {
   if (num(v.startLevel, 0, 5)) s.startLevel = Math.round(v.startLevel as number);
   if (typeof v.onboarded === "boolean") s.onboarded = v.onboarded;
   if (v.dataset === "open" || v.dataset === "private") s.dataset = v.dataset;
+  if (typeof v.curriculum === "string" && /^[a-z0-9][a-z0-9-]{0,63}$/.test(v.curriculum)) s.curriculum = v.curriculum;
   if (["off", "stars", "rain", "sea", "forest", "fire", "voyage", "cafe"].includes(v.ambience as string)) s.ambience = v.ambience as Settings["ambience"];
   if (num(v.ambienceVolume, 0, 1)) s.ambienceVolume = v.ambienceVolume as number;
   if (typeof v.splash === "boolean") s.splash = v.splash;
@@ -264,10 +297,21 @@ export const store = {
     emit();
   },
   progress(fn: (p: Progress) => Progress) {
-    state = { ...state, progress: fn(state.progress) };
+    const before = state.progress;
+    state = { ...state, progress: fn(before) };
     emit();
     scheduleSave();
     localProgressListeners.forEach((listener) => listener(state.progress));
+    if (before.session !== state.progress.session) {
+      // Keep the identity of the session being changed. A null checkpoint
+      // without this metadata could let an older device clear a newer journey.
+      const changedSession = state.progress.session ?? before.session;
+      store.emitSyncEvent("session", {
+        session: state.progress.session,
+        session_id: changedSession?.id,
+        session_started: changedSession?.started,
+      });
+    }
   },
   replaceProgress(progress: unknown) {
     const clean = sanitizeProgress(progress, state.progress.datasetId);
@@ -326,15 +370,36 @@ export function useStore<T>(select: (s: State) => T): T {
   return useSyncExternalStore(store.subscribe, () => select(state), () => select(state));
 }
 
-export function bumpDay(p: Progress, patch: Partial<DayStat>): Progress {
+export function wordStatus(card: CardState | undefined, manualStatus?: WordStatus): WordStatus | null {
+  if (manualStatus) return manualStatus;
+  if (!card) return null;
+  return isMastered(card) ? "mastered" : "learning";
+}
+
+export function bumpDay(p: Progress, patch: Partial<PathDayStat>, curriculumId?: string): Progress {
   const k = dayKey();
   const d = p.days[k] ?? { n: 0, r: 0, c: 0, t: 0 };
   const words = [...new Set([...(d.words ?? []), ...(patch.words ?? [])])].slice(0, 512);
+  const existingPaths = d.paths ?? (d.n || d.r || d.c || d.t ? { ielts: { n: d.n, r: d.r, c: d.c, t: d.t, ...(d.words?.length ? { words: d.words } : {}) } } : {});
+  const beforePath = curriculumId ? existingPaths[curriculumId] ?? { n: 0, r: 0, c: 0, t: 0 } : null;
+  const pathWords = beforePath ? [...new Set([...(beforePath.words ?? []), ...(patch.words ?? [])])].slice(0, 512) : [];
+  const paths = beforePath && curriculumId
+    ? {
+        ...existingPaths,
+        [curriculumId]: {
+          n: beforePath.n + (patch.n ?? 0),
+          r: beforePath.r + (patch.r ?? 0),
+          c: beforePath.c + (patch.c ?? 0),
+          t: beforePath.t + (patch.t ?? 0),
+          ...(pathWords.length ? { words: pathWords } : {}),
+        },
+      }
+    : d.paths;
   return {
     ...p,
     days: {
       ...p.days,
-      [k]: { n: d.n + (patch.n ?? 0), r: d.r + (patch.r ?? 0), c: d.c + (patch.c ?? 0), t: d.t + (patch.t ?? 0), ...(words.length ? { words } : {}) },
+      [k]: { n: d.n + (patch.n ?? 0), r: d.r + (patch.r ?? 0), c: d.c + (patch.c ?? 0), t: d.t + (patch.t ?? 0), ...(words.length ? { words } : {}), ...(paths ? { paths } : {}) },
     },
   };
 }
@@ -347,6 +412,19 @@ export function toggleBookmark(id: string) {
     bookmarks: p.bookmarks.includes(id) ? p.bookmarks.filter((x) => x !== id) : [id, ...p.bookmarks],
   }));
   store.emitSyncEvent("bookmark", { word_id: id, action: existed ? "remove" : "add" }, occurredAt);
+}
+
+export function setManualStatus(id: string, status: WordStatus | null) {
+  const current = store.get().progress.manualStatuses[id];
+  if (current === status) return;
+  const occurredAt = new Date();
+  store.progress((p) => {
+    const manualStatuses = { ...p.manualStatuses };
+    if (status) manualStatuses[id] = status;
+    else delete manualStatuses[id];
+    return { ...p, manualStatuses };
+  });
+  store.emitSyncEvent("status", { word_id: id, status }, occurredAt);
 }
 
 /* ---------- backup ---------- */

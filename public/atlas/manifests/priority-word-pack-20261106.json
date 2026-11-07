@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "batchId": "priority-word-pack-20261106",
+  "planHash": "e69c80fa3a4346bed67bb0543a75d678686864faefbae58f2e2141988a44afea",
+  "files": {
+    "img/might.webp": {
+      "sha256": "64e93a4eb54fd96f96f26f38df86c430c759494e9421057fa28385a27fc9691a",
+      "size": 78976,
+      "mock": false
+    },
+    "thumb/might.webp": {
+      "sha256": "76a4f42e0cdb12f623cc59140c8c05409b3126053ae7d414b3fbf8d98e3b077a",
+      "size": 9446,
+      "mock": false
+    },
+    "audio/uk/might.mp3": {
+      "sha256": "d43f182ceb7c7c1cbd101df0bdae22acb4d2c042a71457fa7cea466c54427a0a",
+      "size": 8193,
+      "mock": false
+    },
+    "audio/us/might.mp3": {
+      "sha256": "d43e4303935c9582e02f36e80c2a06e017b507ea56a9f408b109ecdac30b22bc",
+      "size": 7566,
+      "mock": false
+    },
+    "audio/ex/might.mp3": {
+      "sha256": "425c757d9494be35509ad3985252612a831f5cc17ff4b490efcd1acce664bb40",
+      "size": 15925,
+      "mock": false
+    },
+    "img/part.webp": {
+      "sha256": "15d464a2b354fbf7eab6f649d49a8dfd6c0e240378395d0c7d1f8f9ac2da4976",
+      "size": 74958,
+      "mock": false
+    },
+    "thumb/part.webp": {
+      "sha256": "d94b5894fa7ad984ff0c08e3672401d480c0dff0cc068003bb76405b091f2f28",
+      "size": 10536,
+      "mock": false
+    },
+    "audio/uk/part.mp3": {
+      "sha256": "8a93b1e78476f3c6b0a51df68616f96baae659e95fefdbb0c158c867aadcbce6",
+      "size": 7566,
+      "mock": false
+    },
+    "audio/us/part.mp3": {
+      "sha256": "4e9dacd5110070b92c12654581110e0cbf4183b02bb5e0fb5f83e18d5aac877b",
+      "size": 6939,
+      "mock": false
+    },
+    "audio/ex/part.mp3": {
+      "sha256": "6b1ac3bbb40530d697bcfc56fc655e99a8e2105540e9473868a5742d7adaaf5a",
+      "size": 24284,
+      "mock": false
+    },
+    "img/center.webp": {
+      "sha256": "60fa543268a3630edf3111429735bea1b6e6ee587debb8ac264f2294f7614945",
+      "size": 73426,
+      "mock": false
+    },
+    "thumb/center.webp": {
+      "sha256": "bf5a841a570855c390c72192d52d4f8a23924f3ae6c6158057e18b812ac4c2d8",
+      "size": 10956,
+      "mock": false
+    },
+    "audio/uk/center.mp3": {
+      "sha256": "16a215c5b4a8c98bab80776926f6d51fd20dbabdd975e36fb9a6114ef8a1c520",
+      "size": 8193,
+      "mock": false
+    },
+    "audio/us/center.mp3": {
+      "sha256": "83e59e9dd2bbfb745d3a483e9167de0cec0314c1b17054f2406fa91293c2f6a8",
+      "size": 8193,
+      "mock": false
+    },
+    "audio/ex/center.mp3": {
+      "sha256": "655dbbfc607b3eb3e552be0f4de20fbfd2f7085caeb16742cdac006638ce083f",
+      "size": 26792,
+      "mock": false
+    },
+    "img/color.webp": {
+      "sha256": "3efadb44a4bab4faa5ff82d704413e6a43d63e4e17bb06b8101ea7d342c517f8",
+      "size": 71848,
+      "mock": false
+    },
+    "thumb/color.webp": {
+      "sha256": "a064208c2f2979e8f9422ec1887be71e105a2023cbcdcaf595bafef96086e70d",
+      "size": 11370,
+      "mock": false
+    },
+    "audio/uk/color.mp3": {
+      "sha256": "748c6b75e1b51e32cdbdbe45b6756458093cdff7cf0007a9e380e4dd6fa96db0",
+      "size": 6939,
+      "mock": false
+    },
+    "audio/us/color.mp3": {
+      "sha256": "33863e01b7974d81763e7ce27ed5e8542497bf752b3fdae529f14bb94cc8678b",
+      "size": 7566,
+      "mock": false
+    },
+    "audio/ex/color.mp3": {
+      "sha256": "f8abb0694397dc2b6604e92de987b5a8e2310d36cf7563ffb3409ce2f136a64f",
+      "size": 19060,
+      "mock": false
+    },
+    "img/check.webp": {
+      "sha256": "d9454ab7b4d572beeee48651c464c7f52b55715fc499fbc67103ba1fd498658d",
+      "size": 76558,
+      "mock": false
+    },
+    "thumb/check.webp": {
+      "sha256": "ff4493a2bc51d7e3d4bd569c00c5ef7f621937f6cfabd179f95a8f89439ce4c5",
+      "size": 10496,
+      "mock": false
+    },
+    "audio/uk/check.mp3": {
+      "sha256": "0f5ac9d995bea1be8505a61e7a2ee1b698a459b9e589bfb5fcdaf87c132f5fcd",
+      "size": 6939,
+      "mock": false
+    },
+    "audio/us/check.mp3": {
+      "sha256": "5949fd2f47c54b7d13ddf9048c15d429d875f709a10388daed8f2280280c5201",
+      "size": 6939,
+      "mock": false
+    },
+    "audio/ex/check.mp3": {
+      "sha256": "d959b51f6f67e9e2013a6c96a7636b59a28a101410636f97b1aa87be94f91cc3",
+      "size": 24911,
+      "mock": false
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "batchId": "pipeline-test-four-media",
+  "planHash": "71e76de735b0e0e69e451dea7c67e112564254c90e195ddf8d5dc93a18dee033",
+  "files": {
+    "img/artifact.webp": {
+      "sha256": "a244b71bdd876c96f9273bd0c26ef2f630bad500825b8c4d465efddcd3df1143",
+      "size": 117444,
+      "mock": false
+    },
+    "thumb/artifact.webp": {
+      "sha256": "dc6510e72a95feafa55d8f71ae983dd0b51a9c77db83315dbb5ff58f19797d49",
+      "size": 13116,
+      "mock": false
+    },
+    "audio/uk/artifact.mp3": {
+      "sha256": "2679e99425721690615af2585ee35cf7ae161a3ea17de5b79814ab7b91b973c3",
+      "size": 9447,
+      "mock": false
+    },
+    "audio/us/artifact.mp3": {
+      "sha256": "a6c5e9620da411917d6c962c7d1ad56aa39e140e241b8b99058a058279bc2af6",
+      "size": 8820,
+      "mock": false
+    },
+    "audio/ex/artifact.mp3": {
+      "sha256": "46d66e526f6ef0261e62fa99b8f025550de85155536876bc2a6f83723b2179e7",
+      "size": 35151,
+      "mock": false
+    },
+    "img/deteriorate.webp": {
+      "sha256": "8a03b23602b172afd7379072dc28bf6213fb423ded5b0487dcc3daf798ecf1c3",
+      "size": 89556,
+      "mock": false
+    },
+    "thumb/deteriorate.webp": {
+      "sha256": "d3f901c38e9dcee8e97b05ad99de607347d1a3542cfc00452b81e5e9581ec5b0",
+      "size": 11988,
+      "mock": false
+    },
+    "audio/uk/deteriorate.mp3": {
+      "sha256": "99c23ec2b9581205a701dc52b183c2b2dc94d85f09ed97b18dd0f19c5f50fb31",
+      "size": 12163,
+      "mock": false
+    },
+    "audio/us/deteriorate.mp3": {
+      "sha256": "3e47109e6aebe122f332545265ff4e679b417157a1d71a756af7137542b284fa",
+      "size": 12790,
+      "mock": false
+    },
+    "audio/ex/deteriorate.mp3": {
+      "sha256": "2514ecf54e676174388184311ca89fbdab83cc6b792280af0c4182e925cb0fd3",
+      "size": 29300,
+      "mock": false
+    },
+    "img/notion.webp": {
+      "sha256": "2ede2c518880115b304af5fad88359f9241673ecc31557289e36d8ade66ff468",
+      "size": 93088,
+      "mock": false
+    },
+    "thumb/notion.webp": {
+      "sha256": "22d568b7d32f3e875645160327a6e351c251eb14b58c07c0caa57a8d2427bc2d",
+      "size": 11724,
+      "mock": false
+    },
+    "audio/uk/notion.mp3": {
+      "sha256": "ab6d110d11aa98adda2cbb476a72875c02a529596da180c61acdd98e171af72a",
+      "size": 7566,
+      "mock": false
+    },
+    "audio/us/notion.mp3": {
+      "sha256": "29cd17ab611c964b58265fd270b16ff334e708591468e4ba5c666a952c6ac897",
+      "size": 7566,
+      "mock": false
+    },
+    "audio/ex/notion.mp3": {
+      "sha256": "95444eb9d71cb0ffcc9fea500d66f52f7274129de9cd83cbef02363fad2a810b",
+      "size": 29300,
+      "mock": false
+    },
+    "img/urbanization.webp": {
+      "sha256": "0d0bd3d645e6b926165e86af2caacd0b1caf01cfa1214c0540d45f73bae67925",
+      "size": 80478,
+      "mock": false
+    },
+    "thumb/urbanization.webp": {
+      "sha256": "a6bb3d04126754fb6345bad41e08d9936924edbd17b1d92428e9abb4b82e09f1",
+      "size": 12328,
+      "mock": false
+    },
+    "audio/uk/urbanization.mp3": {
+      "sha256": "a9e3a61c630e3e1586dee2c447c59ad6178a9973ee32c5213eac98b0972ca8bc",
+      "size": 10700,
+      "mock": false
+    },
+    "audio/us/urbanization.mp3": {
+      "sha256": "602d0a74d6c498ccb0170fd57ae9b0d2f65621f85e15db4a1ce8af80d23ac44b",
+      "size": 10074,
+      "mock": false
+    },
+    "audio/ex/urbanization.mp3": {
+      "sha256": "0ad1a67fd487c16d7cae75a9f5a72ffa838544085c62f8fd7dbeda9368c2e695",
+      "size": 34524,
+      "mock": false
+    }
+  }
+}

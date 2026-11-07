@@ -1,9 +1,10 @@
 import { Bookmark, BookmarkCheck, Lightbulb, Share2 } from "lucide-react";
 import type { Entry, WordRef } from "../atlas/types";
-import { useAtlas } from "../atlas/context";
+import { EXAM_TAG_LABELS } from "../atlas/examTags";
+import { useAtlas, useCurriculum } from "../atlas/context";
 import { splitHighlight, splitPair } from "../lib/text";
-import { formatInterval, isMastered } from "../store/srs";
-import { toggleBookmark, useStore } from "../store/store";
+import { formatInterval } from "../store/srs";
+import { setManualStatus, toggleBookmark, useStore, wordStatus, type WordStatus } from "../store/store";
 import { Illustration } from "./Illustration";
 import { Speak } from "./Speak";
 import { shareWord } from "./share";
@@ -52,8 +53,10 @@ export function Pronounce({ entry, refw }: { entry: Entry; refw: WordRef | Entry
 
 export function EntryView({ entry, mode = "detail", eager = true }: { entry: Entry; mode?: "detail" | "intro" | "reveal"; eager?: boolean }) {
   const atlas = useAtlas();
+  const curriculum = useCurriculum();
   const ref = atlas.byId.get(entry.id);
   const card = useStore((s) => s.progress.cards[entry.id]);
+  const manualStatus = useStore((s) => s.progress.manualStatuses[entry.id]);
   const saved = useStore((s) => s.progress.bookmarks.includes(entry.id));
   const accent = useStore((s) => s.settings.accent);
   const topicIdx = atlas.topics.findIndex((t) => t[0] === entry.topic);
@@ -64,7 +67,8 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
     const hit = atlas.words.find((x) => x.word.toLowerCase() === w);
     return { label: f, id: hit?.id };
   });
-  const status = card ? (isMastered(card) ? "已掌握" : "学习中") : null;
+  const status = wordStatus(card, manualStatus);
+  const statusLabel = status === "mastered" ? "已掌握" : status === "learning" ? "学习中" : null;
 
   return (
     <article className={`entry entry-${mode}`}>
@@ -76,7 +80,8 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
           <div className="entry-tags">
             <span className={`chip chip-level lv-${entry.cefr}`}>{entry.cefr}</span>
             {topic && <span className="chip">{topic[1]}</span>}
-            {status && <span className={`chip chip-status ${status === "已掌握" ? "is-done" : ""}`}>{status}</span>}
+            {ref?.examTags.map((tag) => <span key={tag} className={`chip chip-exam chip-exam-${tag}`}>{EXAM_TAG_LABELS[tag]}</span>)}
+            {statusLabel && <span className={`chip chip-status ${status === "mastered" ? "is-done" : ""}`}>{statusLabel}</span>}
           </div>
           {mode === "detail" && (
             <div className="entry-actions">
@@ -101,6 +106,24 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
         </h2>
         <Pronounce entry={entry} refw={ref ?? entry} />
 
+        {mode === "detail" && (
+          <div className="manual-status" role="group" aria-label="手动学习状态">
+            <span className="manual-status-label">手动状态</span>
+            <div className="segmented">
+              {([["", "自动"], ["learning", "学习中"], ["mastered", "已掌握"]] as [WordStatus | "", string][]).map(([value, label]) => (
+                <button
+                  key={value || "auto"}
+                  className={(manualStatus ?? "") === value ? "is-on" : ""}
+                  onClick={() => setManualStatus(entry.id, value || null)}
+                  aria-pressed={(manualStatus ?? "") === value}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <ol className="senses">
           {entry.senses.map((s, i) => (
             <li key={i}>
@@ -121,7 +144,7 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
             <ul className="examples">
               {entry.ex.map((x, i) => (
                 <li key={i}>
-                  {entry.ex.length > 1 && <span className={`ex-tag ${i ? "is-ielts" : ""}`}>{i ? "雅思语境" : "日常"}</span>}
+                  {entry.ex.length > 1 && <span className={`ex-tag ${i ? "is-ielts" : ""}`}>{i ? (curriculum.id === "ielts" ? "雅思语境" : "学术语境") : "日常"}</span>}
                   <p className="ex-en" lang="en">
                     <Highlight text={x.en} word={entry.w} />
                     <Speak url={exUrls[i] ?? null} text={x.en} accent={i === 1 && exUrls[1] ? "us" : accent} size="sm" className="ex-speak" />

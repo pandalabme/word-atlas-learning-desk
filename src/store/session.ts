@@ -1,5 +1,6 @@
 import type { Atlas, WordRef } from "../atlas/types";
 import { MEDIA } from "../atlas/types";
+import type { Curriculum } from "../curriculum/types";
 import { hashSeed, normalize, shuffle } from "../lib/text";
 import { isMastered, review, Rating, type Grade } from "./srs";
 import { bumpDay, dayKey, store, type ActiveSession, type Progress, type QuizKind, type Settings, type Step } from "./store";
@@ -11,17 +12,18 @@ export function dueIds(p: Progress, now = Date.now()) {
     .map(([id]) => id);
 }
 
-export function newToday(p: Progress) {
-  return p.days[dayKey()]?.n ?? 0;
+export function newToday(p: Progress, curriculumId: string) {
+  const day = p.days[dayKey()];
+  return day?.paths?.[curriculumId]?.n ?? (curriculumId === "ielts" && !day?.paths ? day?.n ?? 0 : 0);
 }
 
 /** Next unseen words along the learning path, starting at the learner's level. */
-export function nextNew(atlas: Atlas, p: Progress, settings: Settings, count: number) {
+export function nextNew(atlas: Atlas, curriculum: Curriculum, p: Progress, settings: Settings, count: number) {
   const out: string[] = [];
   const pass = (from: number) => {
-    for (const w of atlas.words) {
+    for (const w of curriculum.words) {
       if (out.length >= count) return;
-      if (w.cefr < from || p.cards[w.id] || out.includes(w.id)) continue;
+      if (w.cefr < from || !atlas.byId.has(w.id) || p.cards[w.id] || out.includes(w.id)) continue;
       out.push(w.id);
     }
   };
@@ -30,10 +32,10 @@ export function nextNew(atlas: Atlas, p: Progress, settings: Settings, count: nu
   return out;
 }
 
-export function todayPlan(atlas: Atlas, p: Progress, s: Settings) {
-  const due = dueIds(p).filter((id) => atlas.byId.has(id));
-  const newLeft = Math.max(0, s.dailyNew - newToday(p));
-  const fresh = nextNew(atlas, p, s, newLeft);
+export function todayPlan(atlas: Atlas, curriculum: Curriculum, p: Progress, s: Settings) {
+  const due = dueIds(p).filter((id) => curriculum.byId.has(id) && atlas.byId.has(id));
+  const newLeft = Math.max(0, s.dailyNew - newToday(p, curriculum.id));
+  const fresh = nextNew(atlas, curriculum, p, s, newLeft);
   return { due, fresh, minutes: Math.max(1, Math.round(due.length * 0.25 + fresh.length * 0.9)) };
 }
 
@@ -93,11 +95,12 @@ export function distractors(atlas: Atlas, ref: WordRef, kind: QuizKind, seed: nu
   return shuffle([ref.id, ...picks], seed);
 }
 
-export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: { ids?: string[]; reviewOnly?: boolean }): ActiveSession {
+export function buildSession(atlas: Atlas, curriculum: Curriculum, p: Progress, s: Settings, opts?: { ids?: string[]; reviewOnly?: boolean }): ActiveSession & { curriculumId: string } {
   const seed = Date.now();
-  const plan = todayPlan(atlas, p, s);
-  const reviewIds = opts?.ids ? opts.ids.filter((id) => p.cards[id]) : plan.due.slice(0, 120);
-  const newIds = opts?.ids ? opts.ids.filter((id) => !p.cards[id]) : opts?.reviewOnly ? [] : plan.fresh;
+  const plan = todayPlan(atlas, curriculum, p, s);
+  const validIds = (ids: string[]) => ids.filter((id) => curriculum.byId.has(id) && atlas.byId.has(id));
+  const reviewIds = opts?.ids ? validIds(opts.ids).filter((id) => p.cards[id]) : plan.due.slice(0, 120);
+  const newIds = opts?.ids ? validIds(opts.ids).filter((id) => !p.cards[id]) : opts?.reviewOnly ? [] : plan.fresh;
   const steps: Step[] = [];
   const quiz = (id: string, salt: number): Step => {
     const ref = atlas.byId.get(id)!;
@@ -112,7 +115,7 @@ export function buildSession(atlas: Atlas, p: Progress, s: Settings, opts?: { id
     group.forEach((id) => steps.push({ id, kind: "intro" }));
     shuffle(group, seed + g).forEach((id, i) => steps.push(quiz(id, 1000 + g + i)));
   }
-  return { id: `s${seed}`, started: seed, steps, index: 0, graded: {}, newIds, reviewIds };
+  return { id: `s${seed}`, started: seed, steps, index: 0, graded: {}, newIds, reviewIds, curriculumId: curriculum.id };
 }
 
 export function gradeFor(kind: QuizKind, correct: boolean, ms: number, hinted: boolean): Grade {
@@ -144,7 +147,7 @@ export function answer(atlas: Atlas, step: Step & { kind: QuizKind }, correct: b
         session: { ...next.session!, graded: { ...sess.graded, [step.id]: grade } },
         mistakes: correct ? next.mistakes : [step.id, ...next.mistakes.filter((x) => x !== step.id)].slice(0, 300),
       };
-      next = bumpDay(next, { r: 1, c: correct ? 1 : 0, n: sess.newIds.includes(step.id) ? 1 : 0, words: [step.id] });
+      next = bumpDay(next, { r: 1, c: correct ? 1 : 0, n: sess.newIds.includes(step.id) ? 1 : 0, words: [step.id] }, sess.curriculumId);
     }
     if (!correct) {
       // Practise it again a few steps later in another format; never re-graded.
@@ -166,6 +169,7 @@ export function answer(atlas: Atlas, step: Step & { kind: QuizKind }, correct: b
       grade,
       retention: settings.retention,
       stats_delta: { day_key: dateKey, delta: { n: store.get().progress.session?.newIds.includes(step.id) ? 1 : 0, r: 1, c: correct ? 1 : 0, t: 0 } },
+      curriculum_id: store.get().progress.session?.curriculumId,
     }, occurredAt);
   }
 }
@@ -181,10 +185,10 @@ export function advance(seconds: number) {
     advanced = true;
     const index = s.index + 1;
     const finished = index >= s.steps.length ? Date.now() : undefined;
-    const next = bumpDay(p, { t: elapsed });
+    const next = bumpDay(p, { t: elapsed }, s.curriculumId);
     return { ...next, session: { ...s, index, pending: undefined, finished } };
   });
-  if (advanced && elapsed > 0) store.emitSyncEvent("day_delta", { day_key: dayKey(occurredAt), delta: { t: elapsed } }, occurredAt);
+  if (advanced && elapsed > 0) store.emitSyncEvent("day_delta", { day_key: dayKey(occurredAt), delta: { t: elapsed }, curriculum_id: store.get().progress.session?.curriculumId }, occurredAt);
 }
 
 export function sessionStats(s: ActiveSession) {

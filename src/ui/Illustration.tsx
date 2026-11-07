@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { legacyMediaFallback } from "../atlas/mediaBase";
 
 const HUES = ["#C4573A", "#7F9B77", "#D9A03A", "#5F7FA3", "#A86B8C", "#4E7C76"];
 
@@ -19,18 +20,31 @@ export function Illustration({
   alt?: string;
 }) {
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
-  const showImg = src && state !== "error";
+  const [imageSrc, setImageSrc] = useState(src);
+  useEffect(() => {
+    setImageSrc(src);
+    setState("loading");
+  }, [src]);
+  const showImg = imageSrc && state !== "error";
   return (
     <figure className={`illo ${showImg && state === "ok" ? "is-loaded" : ""} ${className}`}>
       {showImg ? (
         <img
-          src={src}
+          src={imageSrc}
           alt={alt ?? ""}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
           draggable={false}
           onLoad={() => setState("ok")}
-          onError={() => setState("error")}
+          onError={() => {
+            const fallback = legacyMediaFallback(imageSrc);
+            if (fallback && fallback !== imageSrc) {
+              setImageSrc(fallback);
+              setState("loading");
+            } else {
+              setState("error");
+            }
+          }}
         />
       ) : (
         <div className="plate" style={{ "--hue": HUES[topic % HUES.length], "--len": Math.max(4, word.length) } as React.CSSProperties} aria-hidden="true">

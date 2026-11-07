@@ -6,7 +6,7 @@
 
 **See the word. Hear it. Make it yours.**
 
-7,298 IELTS words · Original illustrations · UK & US audio · Spaced repetition
+7,303 canonical entries · IELTS and TOEFL paths · UK & US audio · Spaced repetition
 
 [**Try Word Atlas ↗**](https://0xlei.tech/words/)　 /　 [48-second film](docs/assets/launch.mp4)　 /　 [Get the dataset](data/)　 /　 [简体中文](README.md)
 
@@ -24,11 +24,13 @@
 
 ---
 
-Word Atlas is an illustrated IELTS vocabulary app for Chinese-speaking learners. Connect words with scenes and pronunciation, practise active recall, and return to them with FSRS spaced repetition. No account required. Learning progress stays on your device.
+Word Atlas is an illustrated vocabulary app for Chinese-speaking learners. One canonical dictionary supports multiple study paths while the same word keeps one shared FSRS memory state. Connect words with scenes and pronunciation, practise active recall, and return to them with spaced repetition. No account required. Learning progress stays on your device.
 
 > **Version scope:** This repository contains the open-source foundation of Word Atlas and its dataset. The hosted website evolves separately and may have different features. The code and dataset here remain available under their respective MIT and CC BY 4.0 licenses.
 
 > **XM3YN integration:** This directory keeps the upstream Word Atlas experience and adds optional idempotent multi-device event sync plus a “send today's words to the XM3YN tag” action for the `electronic_diy` project. Remote sync is disabled by default and requires a self-hosted HTTPS endpoint and dedicated token. Active quiz sessions remain local. Server setup is documented in [`../pc-display-gateway/README.md`](../pc-display-gateway/README.md#word-atlas-同步接口).
+
+> **Study paths:** The existing IELTS path keeps all 7,303 entries. The TOEFL path selects the 3,434 canonical entries carrying ECDICT's `toefl` classification tag. Both are unofficial study aids. Switching paths preserves shared word progress; daily quotas and path statistics remain path-specific. The same sidecar supports future `zk`, `gk`, `cet4`, `cet6`, `ky`, `ielts`, and `gre` curricula; see [ECDICT exam tags](docs/ecdict-exam-tags.md).
 
 [Preview](#preview) · [Learning loop](#learning-loop) · [Quick start](#quick-start) · [Open dataset](#open-dataset) · [Contributing](#contributing)
 
@@ -100,6 +102,7 @@ Open **http://localhost:5188**.
 
 ```bash
 npm test             # Unit tests
+npm run check:curricula # Curriculum and exam-tag consistency
 npm run check:atlas  # Dataset and media validation
 npm run build        # Production build in dist/
 ```
@@ -114,10 +117,11 @@ Use the app as it is, or build your own learning tools, Anki decks and research 
 
 | Resource | Repository edition | Download / documentation |
 | :--- | :--- | :--- |
-| Entries | **7,298**, CEFR A1–C2, 19 topics | [JSON](data/word-atlas.json) · [CSV](data/word-atlas.csv) |
-| Examples | **14,596**, everyday and IELTS contexts, with Chinese translations | [Schema](docs/dataset.md) |
+| Entries | **7,303**, CEFR A1–C2, 19 topics | [JSON](data/word-atlas.json) · [CSV](data/word-atlas.csv) |
+| Examples | **14,606**, everyday and IELTS contexts, with Chinese translations | [Schema](docs/dataset.md) |
 | Illustrations | **7,298**, 512 px WebP plus thumbnails | [Images](public/atlas/img/) |
 | Recordings | **22,905**, UK/US words and example sentences | [Audio](public/atlas/audio/) |
+| Exam tags | ECDICT mappings for eight exam categories | [Provenance and reproduction](docs/ecdict-exam-tags.md) |
 
 ```python
 import json
@@ -129,7 +133,7 @@ b2_environment = [w for w in words if w["cefr"] == "B2" and w["topic"] == "envir
 
 ### Provenance and limitations
 
-Text and illustrations were generated for this project using AI; speech was synthesized with ElevenLabs. Automated structure and consistency checks have been performed, but **the entire collection has not been manually reviewed**. Definitions, examples, illustrations or pronunciation may contain errors. This is not an official IELTS list and does not promise score improvements.
+Text and illustrations were generated for this project using AI; speech was synthesized with ElevenLabs. Automated structure and consistency checks have been performed, but **the entire collection has not been manually reviewed**. Definitions, examples, illustrations or pronunciation may contain errors. Exam classifications come from ECDICT. No study path is an official exam list or promises score improvements.
 
 [Generation pipeline](docs/pipeline.md) · [Learning model](docs/learning-model.md) · [Scripts](scripts/atlas/)
 
@@ -147,6 +151,7 @@ Please include the **word ID, reproduction steps and expected result** when repo
 | :--- | :--- |
 | Application code | [MIT](LICENSE) |
 | Vocabulary text, illustrations and word recordings | [CC BY 4.0](CONTENT_LICENSE.md); credit “Word Atlas contributors（词光）” |
+| ECDICT exam-tag mapping | ECDICT MIT License; see [provenance and notice](docs/ecdict-exam-tags.md) |
 | Dependencies and fonts | Their respective licenses |
 
 ---

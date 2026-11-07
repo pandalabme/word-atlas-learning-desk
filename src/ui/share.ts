@@ -109,7 +109,7 @@ export async function renderWordCard(atlas: Atlas, e: Entry) {
   ctx.fillText("词光 · Word Atlas", pad, H - 62);
   ctx.font = `400 26px ${SANS}`;
   ctx.fillStyle = "#7A7C88";
-  const tag = "一词一画，点亮雅思";
+  const tag = "一词一画，点亮英语";
   ctx.fillText(tag, W - pad - ctx.measureText(tag).width, H - 64);
   return c;
 }

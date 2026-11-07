@@ -25,25 +25,97 @@ class MemoryStorage implements EventStorage {
 
 const settings: Settings = {
   accent: "uk", autoplay: true, dailyNew: 10, retention: 0.9, theme: "dark", sfx: true, spell: true,
-  startLevel: 0, onboarded: true, dataset: "open", ambience: "off", ambienceVolume: 0.4, splash: false,
+  startLevel: 0, onboarded: true, dataset: "open", curriculum: "ielts", ambience: "off", ambienceVolume: 0.4, splash: false,
 };
 const uid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const serverEvent = (seq: number, deviceId: string, event: SyncEvent): ServerSyncEvent => ({ ...event, seq, device_id: deviceId });
 const config = { baseUrl: "https://sync.example.test", profileId: "profile-a", deviceId: "device-a", token: "secret", autoSync: false };
 
-test("bootstrap is chunked below 64 KiB and excludes session state", () => {
+test("bootstrap is chunked below 64 KiB and includes a resumable session checkpoint", () => {
   const snapshot = emptySyncSnapshot("word-atlas-open");
   snapshot.progress.bookmarks = Array.from({ length: 1300 }, (_, i) => `bookmark-${i}-${"x".repeat(45)}`);
   snapshot.progress.mistakes = ["wrong-a", "wrong-b"];
   snapshot.progress.typing = Array.from({ length: 500 }, (_, i) => ({ at: i + 1, mode: "word" as const, items: 10, wpm: 50, accuracy: 95 }));
+  snapshot.progress.manualStatuses = { "word-a": "learning", "word-b": "mastered" };
   snapshot.progress.session = { id: "private-session", started: 1, steps: [], index: 0, graded: {}, newIds: [], reviewIds: [] };
   const events = buildBootstrapEvents(snapshot.progress, settings, (() => { let n = 0; return () => uid(++n); })());
   assert.ok(events.length > 1);
   for (const event of events) assert.ok(new TextEncoder().encode(JSON.stringify(event)).byteLength <= 64 * 1024);
   const payloads = events.map((event) => event.payload);
   assert.ok(payloads.some((payload) => Array.isArray(payload.mistakes)));
-  assert.equal(JSON.stringify(payloads).includes("private-session"), false);
+  assert.ok(payloads.some((payload) => Array.isArray(payload.statuses)));
+  assert.ok(payloads.some((payload) => (payload.session as { id?: string } | undefined)?.id === "private-session"));
   assert.equal(JSON.stringify(payloads).includes('"token"'), false);
+});
+
+test("replay applies and clears manual atlas statuses from another device", () => {
+  const initial = emptySyncSnapshot("word-atlas-open");
+  initial.progress.manualStatuses = { apple: "learning" };
+  const mastered: SyncEvent = {
+    event_id: uid(42), occurred_at: "2026-01-01T00:00:01.000Z", kind: "status",
+    payload: { word_id: "apple", status: "mastered" },
+  };
+  const cleared: SyncEvent = {
+    event_id: uid(43), occurred_at: "2026-01-01T00:00:02.000Z", kind: "status",
+    payload: { word_id: "apple", status: null },
+  };
+  const updated = replaySyncEvents(initial, [serverEvent(1, "phone", mastered)], "pc");
+  assert.equal(updated.progress.manualStatuses.apple, "mastered");
+  const restored = replaySyncEvents(updated, [serverEvent(2, "phone", cleared)], "pc");
+  assert.equal(restored.progress.manualStatuses.apple, undefined);
+});
+
+test("replay replaces an active journey checkpoint and clears it after remote completion", () => {
+  const initial = emptySyncSnapshot("word-atlas-open");
+  initial.progress.session = {
+    id: "pc-session", started: 10, steps: [{ id: "apple", kind: "intro" }], index: 0,
+    graded: {}, newIds: ["apple"], reviewIds: [],
+  };
+  const remoteSession: SyncEvent = {
+    event_id: uid(40), occurred_at: "2026-01-01T00:00:01.000Z", kind: "session",
+    payload: { session: { id: "phone-session", started: 20, steps: [{ id: "apple", kind: "intro" }], index: 1, graded: {}, newIds: ["apple"], reviewIds: [] } },
+  };
+  const remoteDone: SyncEvent = {
+    event_id: uid(41), occurred_at: "2026-01-01T00:00:02.000Z", kind: "session", payload: { session: null },
+  };
+  const resumed = replaySyncEvents(initial, [serverEvent(1, "phone", remoteSession)], "pc");
+  assert.equal(resumed.progress.session?.id, "phone-session");
+  assert.equal(resumed.progress.session?.index, 1);
+  const completed = replaySyncEvents(resumed, [serverEvent(2, "phone", remoteDone)], "pc");
+  assert.equal(completed.progress.session, null);
+});
+
+test("remote reviews remove already completed words from the pending local journey", () => {
+  const initial = emptySyncSnapshot("word-atlas-open");
+  initial.progress.session = {
+    id: "pc-session", started: 10,
+    steps: [
+      { id: "done-remotely", kind: "intro" },
+      { id: "done-remotely", kind: "meaning", options: ["done-remotely"] },
+      { id: "keep", kind: "intro" },
+    ],
+    index: 0, graded: {}, newIds: ["done-remotely", "keep"], reviewIds: [],
+  };
+  const remoteReview: SyncEvent = {
+    event_id: uid(44), occurred_at: "2026-01-01T00:00:03.000Z", kind: "review",
+    payload: { word_id: "done-remotely", grade: Rating.Good, retention: 0.9 },
+  };
+  const result = replaySyncEvents(initial, [serverEvent(1, "phone", remoteReview)], "pc");
+  assert.deepEqual(result.progress.session?.steps.map((step) => step.id), ["keep"]);
+  assert.deepEqual(result.progress.session?.newIds, ["keep"]);
+});
+
+test("an old session completion cannot clear a newer active journey", () => {
+  const initial = emptySyncSnapshot("word-atlas-open");
+  initial.progress.session = {
+    id: "new-session", started: 200, steps: [{ id: "keep", kind: "intro" }], index: 0, graded: {}, newIds: ["keep"], reviewIds: [],
+  };
+  const oldDone: SyncEvent = {
+    event_id: uid(45), occurred_at: "2026-01-01T00:00:04.000Z", kind: "session",
+    payload: { session: null, session_id: "old-session", session_started: 100 },
+  };
+  const result = replaySyncEvents(initial, [serverEvent(1, "phone", oldDone)], "pc");
+  assert.equal(result.progress.session?.id, "new-session");
 });
 
 test("event batches obey both the 500-event and request-byte bounds", () => {
@@ -61,7 +133,7 @@ test("replay orders remote events, ignores self events, deduplicates typing, and
   const initial = emptySyncSnapshot("word-atlas-open");
   const bookmarkAdd: SyncEvent = { event_id: uid(1), occurred_at: "2026-01-01T00:00:02.000Z", kind: "bookmark", payload: { word_id: "apple", action: "add" } };
   const bookmarkRemove: SyncEvent = { event_id: uid(2), occurred_at: "2026-01-01T00:00:03.000Z", kind: "bookmark", payload: { word_id: "apple", action: "remove" } };
-  const again: SyncEvent = { event_id: uid(3), occurred_at: "2026-01-01T00:00:04.000Z", kind: "review", payload: { word_id: "apple", grade: Rating.Again, retention: 0.9, stats_delta: { day_key: "2026-01-01", delta: { r: 1, c: 0, n: 1 } } } };
+  const again: SyncEvent = { event_id: uid(3), occurred_at: "2026-01-01T00:00:04.000Z", kind: "review", payload: { word_id: "apple", grade: Rating.Again, retention: 0.9, curriculum_id: "toefl-ibt-2026", stats_delta: { day_key: "2026-01-01", delta: { r: 1, c: 0, n: 1 } } } };
   const malformed: SyncEvent = { event_id: uid(4), occurred_at: "2026-01-01T00:00:05.000Z", kind: "review", payload: { word_id: "pear", grade: Rating.Good, retention: 0.9, stats_delta: { day_key: "2026-01-01", delta: { r: "oops", c: Infinity } } } };
   const typing: SyncEvent = { event_id: uid(5), occurred_at: "2026-01-01T00:00:06.000Z", kind: "typing", payload: { round: { at: 10, mode: "word", items: 2, wpm: 40, accuracy: 90 } } };
   const applied = replaySyncEvents(initial, [
@@ -79,6 +151,7 @@ test("replay orders remote events, ignores self events, deduplicates typing, and
   assert.deepEqual(applied.progress.mistakes, ["apple"]);
   assert.equal(applied.progress.days["2026-01-01"].r, 1);
   assert.equal(applied.progress.days["2026-01-01"].n, 1);
+  assert.equal(applied.progress.days["2026-01-01"].paths?.["toefl-ibt-2026"]?.n, 1);
   assert.deepEqual(applied.progress.days["2026-01-01"].words, ["apple", "pear"]);
   assert.equal(applied.progress.typing.length, 1);
 });

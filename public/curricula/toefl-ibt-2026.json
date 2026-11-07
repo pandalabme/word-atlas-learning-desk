@@ -1,0 +1,29 @@
+{
+  "id": "toefl-ibt-2026",
+  "version": 1,
+  "name": "TOEFL 词汇路径",
+  "description": "从统一词典中选择带有 ECDICT toefl 分类标签的词条，按统一词典原有顺序排列。分类仅作非官方复习参考。",
+  "attribution": {
+    "curator": "词光",
+    "official": false,
+    "note": "词光整理，非官方词表"
+  },
+  "selection": {
+    "mode": "filter",
+    "filter": {
+      "examTags": ["toefl"]
+    }
+  },
+  "domains": [
+    { "id": "education", "name": "教育", "topicIds": [0] },
+    { "id": "technology", "name": "科技", "topicIds": [2] },
+    { "id": "science", "name": "科学", "topicIds": [3] },
+    { "id": "environment", "name": "环境", "topicIds": [4] },
+    { "id": "health", "name": "健康", "topicIds": [5] },
+    { "id": "society", "name": "社会", "topicIds": [6] },
+    { "id": "economy", "name": "经济", "topicIds": [8] },
+    { "id": "media", "name": "媒体", "topicIds": [9] },
+    { "id": "arts", "name": "艺术", "topicIds": [10] },
+    { "id": "history", "name": "历史", "topicIds": [18] }
+  ]
+}

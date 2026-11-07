@@ -1,12 +1,12 @@
 import { Grid3x3, List, Search, Sparkles, X } from "lucide-react";
 import { Galaxy } from "../galaxy/Galaxy";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useAtlas } from "../atlas/context";
+import { useAtlas, useCurriculum } from "../atlas/context";
 import type { WordRef } from "../atlas/types";
 import { morphFrom } from "../lib/motion";
 import { go, openWord, type Route } from "../lib/router";
-import { isMastered } from "../store/srs";
-import { useStore } from "../store/store";
+import type { CardState } from "../store/srs";
+import { useStore, wordStatus } from "../store/store";
 import { Illustration } from "../ui/Illustration";
 import { searchAtlas } from "../ui/Palette";
 import { Speak } from "../ui/Speak";
@@ -36,7 +36,9 @@ export function AtlasPage({
   route: Extract<Route, { page: "atlas" }>;
 }) {
   const atlas = useAtlas();
+  const curriculum = useCurriculum();
   const cards = useStore((s) => s.progress.cards);
+  const manualStatuses = useStore((s) => s.progress.manualStatuses);
   const bookmarks = useStore((s) => s.progress.bookmarks);
   const [q, setQ] = useState(route.q ?? "");
   const [status, setStatus] = useState<Status>("all");
@@ -77,18 +79,25 @@ export function AtlasPage({
     const saved = new Set(bookmarks);
     const ti = topic ? atlas.topics.findIndex((t) => t[0] === topic) : -1;
     const li = level ? atlas.cefr.indexOf(level) : -1;
-    const base = q.trim() ? searchAtlas(atlas, q, 5000) : atlas.words;
+    const base = q.trim() ? searchAtlas(atlas, q, 5000).filter((word) => curriculum.byId.has(word.id)) : curriculum.words;
     return base.filter((w) => {
       if (ti >= 0 && w.topic !== ti) return false;
       if (li >= 0 && w.cefr !== li) return false;
       const c = cards[w.id];
-      if (status === "new") return !c;
-      if (status === "learning") return !!c && !isMastered(c);
-      if (status === "mastered") return isMastered(c);
+      const currentStatus = wordStatus(c, manualStatuses[w.id]);
+      if (status === "new") return !currentStatus;
+      if (status === "learning") return currentStatus === "learning";
+      if (status === "mastered") return currentStatus === "mastered";
       if (status === "saved") return saved.has(w.id);
       return true;
     });
-  }, [atlas, q, topic, level, status, cards, bookmarks]);
+  }, [atlas, curriculum, q, topic, level, status, cards, manualStatuses, bookmarks]);
+
+  const topicCounts = useMemo(() => {
+    const counts = new Array(atlas.topics.length).fill(0);
+    curriculum.words.forEach((word) => counts[word.topic]++);
+    return counts;
+  }, [atlas, curriculum]);
 
   const setFilter = (patch: Partial<Extract<Route, { page: "atlas" }>>) =>
     go({ page: "atlas", topic, level, view: route.view, ...patch }, null, true);
@@ -97,14 +106,14 @@ export function AtlasPage({
     <div className={`page atlas ${view === "galaxy" ? "is-galaxy" : ""}`}>
       <header className="atlas-head">
         <div>
-          <p className="eyebrow">图鉴 · {atlas.count.toLocaleString()} 词</p>
+          <p className="eyebrow">{curriculum.name} · {curriculum.count.toLocaleString()} 词</p>
           <h1 className="display">
             每个词，
             <br className="br-sm" />
             都有一幅画。
           </h1>
           <p className="lede">
-            {atlas.examples.toLocaleString()} 条原创例句 · 英美发音 · 按难度和 {atlas.topics.length} 个雅思话题整理
+            词条来自统一词典 · 原创例句与英美发音 · 当前按 {curriculum.name} 筛选
           </p>
         </div>
         <label className="search">
@@ -157,7 +166,7 @@ export function AtlasPage({
               >
                 所有主题
               </button>
-              {atlas.topics.map(([k, name]) => (
+              {atlas.topics.map(([k, name], index) => topicCounts[index] > 0 && (
                 <button
                   key={k}
                   className={`chip-btn ${topic === k ? "is-on" : ""}`}
@@ -225,16 +234,16 @@ export function AtlasPage({
       </div>
 
       {view === "galaxy" ? (
-        <Galaxy mode="full" focus={q.trim() ? list[0]?.id : null} />
+        <Galaxy mode="full" focus={q.trim() ? list[0]?.id : null} words={curriculum.words} />
       ) : list.length === 0 ? (
         <div className="empty">
           <img src={`${import.meta.env.BASE_URL}brand/empty.webp`} alt="" />
           <p>这片星域还没有词。换个筛选条件试试。</p>
         </div>
       ) : view === "grid" ? (
-        <VirtualGrid items={list} cards={cards} />
+        <VirtualGrid items={list} cards={cards} manualStatuses={manualStatuses} />
       ) : (
-        <VirtualList items={list} cards={cards} />
+        <VirtualList items={list} cards={cards} manualStatuses={manualStatuses} />
       )}
     </div>
   );
@@ -292,9 +301,11 @@ function useWidth(ref: React.RefObject<HTMLDivElement | null>) {
 function VirtualGrid({
   items,
   cards,
+  manualStatuses,
 }: {
   items: WordRef[];
-  cards: Record<string, { s: number; st: number }>;
+  cards: Record<string, CardState>;
+  manualStatuses: Record<string, "learning" | "mastered">;
 }) {
   const atlas = useAtlas();
   const box = useRef<HTMLDivElement>(null);
@@ -315,15 +326,11 @@ function VirtualGrid({
         const w = items[r * cols + c];
         if (!w) break;
         const card = cards[w.id];
-        const st = card
-          ? card.st === 2 && card.s >= 21
-            ? "is-mastered"
-            : "is-learning"
-          : "";
+        const st = wordStatus(card, manualStatuses[w.id]);
         visible.push(
           <button
             key={w.id}
-            className={`tile ${st}`}
+            className={`tile ${st ? `is-${st}` : ""}`}
             style={{
               transform: `translate(${c * (cell + gap)}px, ${r * rowH}px)`,
               width: cell,
@@ -361,9 +368,11 @@ function VirtualGrid({
 function VirtualList({
   items,
   cards,
+  manualStatuses,
 }: {
   items: WordRef[];
-  cards: Record<string, { s: number; st: number }>;
+  cards: Record<string, CardState>;
+  manualStatuses: Record<string, "learning" | "mastered">;
 }) {
   const atlas = useAtlas();
   const accent = useStore((s) => s.settings.accent);
@@ -395,9 +404,7 @@ function VirtualList({
             </span>
             <span className="row-ipa ipa">{w.ipa}</span>
             <span className="row-zh">{w.zh}</span>
-            <span
-              className={`row-dot ${card ? (card.st === 2 && card.s >= 21 ? "is-mastered" : "is-learning") : ""}`}
-            />
+            <span className={`row-dot ${wordStatus(card, manualStatuses[w.id]) ? `is-${wordStatus(card, manualStatuses[w.id])}` : ""}`} />
             <Speak
               url={atlas.audio(w, accent)}
               text={w.word}

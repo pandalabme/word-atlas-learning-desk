@@ -1,4 +1,5 @@
 import { duck } from "./sound";
+import { legacyMediaFallback } from "../atlas/mediaBase";
 
 let current: HTMLAudioElement | null = null;
 let token = 0;
@@ -23,8 +24,10 @@ export async function play(url: string | null | undefined, text: string, accent:
 async function speak(url: string | null | undefined, text: string, accent: "uk" | "us", rate: number) {
   stopAudio();
   const mine = ++token;
-  if (url) {
-    const a = new Audio(url);
+  const candidates = [url, legacyMediaFallback(url)].filter((candidate, index, list): candidate is string => Boolean(candidate) && list.indexOf(candidate) === index);
+  for (const candidate of candidates) {
+    if (mine !== token) return "stopped" as const;
+    const a = new Audio(candidate);
     a.playbackRate = rate;
     current = a;
     try {

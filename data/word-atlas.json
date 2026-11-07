@@ -324550,5 +324550,941 @@
   "topic": "society",
   "note": "",
   "id": "profess"
+ },
+ {
+  "w": "arid",
+  "uk": "/ˈærɪd/",
+  "us": "/ˈærɪd/",
+  "senses": [
+   {
+    "pos": "adj.",
+    "zh": "干旱的；不毛的",
+    "en": "Very dry because there is little or no rain."
+   }
+  ],
+  "ex": [
+   {
+    "en": "Few crops can grow on this arid land without irrigation.",
+    "zh": "没有灌溉的话，很少有作物能在这片干旱的土地上生长。"
+   },
+   {
+    "en": "Researchers are studying how native plants survive in increasingly arid regions.",
+    "zh": "研究人员正在考察本地植物如何在日益干旱的地区生存。"
+   }
+  ],
+  "col": [
+   "arid region｜干旱地区",
+   "arid climate｜干旱气候",
+   "arid land｜干旱土地"
+  ],
+  "fam": [
+   "aridity (n.)"
+  ],
+  "syn": [
+   "dry"
+  ],
+  "ant": [
+   "humid",
+   "moist"
+  ],
+  "tip": "常用来描述降雨稀少的气候或土地；也可比喻内容枯燥、缺少活力。",
+  "cefr": "B2",
+  "topic": "nature",
+  "note": "",
+  "id": "arid"
+ },
+ {
+  "w": "artifact",
+  "uk": "/ˈɑːtɪfækt/",
+  "us": "/ˈɑːrtəfækt/",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "人工制品；历史器物",
+    "en": "An object made by people, especially one preserved from an earlier time."
+   }
+  ],
+  "ex": [
+   {
+    "en": "The archaeologists found a pottery artifact near the old settlement.",
+    "zh": "考古学家在旧聚落附近发现了一件陶器。"
+   },
+   {
+    "en": "Each artifact in the exhibition provides evidence about how people lived centuries ago.",
+    "zh": "展览中的每件历史器物都为了解几个世纪前人们的生活方式提供了证据。"
+   }
+  ],
+  "col": [
+   "ancient artifact｜古代器物",
+   "historical artifact｜历史文物",
+   "cultural artifact｜文化遗物"
+  ],
+  "fam": [],
+  "syn": [
+   "object",
+   "relic"
+  ],
+  "ant": [],
+  "tip": "强调由人制造或使用的物件；英式英语也常拼作artefact。",
+  "cefr": "B2",
+  "topic": "history",
+  "note": "",
+  "id": "artifact"
+ },
+ {
+  "w": "deteriorate",
+  "uk": "/dɪˈtɪəriəreɪt/",
+  "us": "/dɪˈtɪriəreɪt/",
+  "senses": [
+   {
+    "pos": "v.",
+    "zh": "恶化；变差",
+    "en": "To become worse in quality, condition, or strength."
+   }
+  ],
+  "ex": [
+   {
+    "en": "Her health began to deteriorate during the long winter.",
+    "zh": "漫长的冬季里，她的健康状况开始恶化。"
+   },
+   {
+    "en": "Without regular maintenance, the old bridge will continue to deteriorate.",
+    "zh": "如果不定期维护，这座旧桥的状况会继续恶化。"
+   }
+  ],
+  "col": [
+   "deteriorate rapidly｜迅速恶化",
+   "health deteriorates｜健康状况恶化",
+   "conditions deteriorate｜情况恶化"
+  ],
+  "fam": [
+   "deterioration (n.)",
+   "deteriorating (adj.)"
+  ],
+  "syn": [
+   "worsen",
+   "decline"
+  ],
+  "ant": [
+   "improve"
+  ],
+  "tip": "通常作不及物动词：conditions deteriorate表示情况恶化；名词形式是deterioration。",
+  "cefr": "C1",
+  "topic": "health",
+  "note": "",
+  "id": "deteriorate"
+ },
+ {
+  "w": "notion",
+  "uk": "/ˈnəʊʃən/",
+  "us": "/ˈnoʊʃən/",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "概念；观念；想法",
+    "en": "An idea or belief about something."
+   }
+  ],
+  "ex": [
+   {
+    "en": "I had no notion that the meeting would last so long.",
+    "zh": "我没想到会议会持续这么久。"
+   },
+   {
+    "en": "The study challenges the notion that children learn best by memorising facts.",
+    "zh": "这项研究质疑了孩子通过背诵事实学习效果最好这一观念。"
+   }
+  ],
+  "col": [
+   "the notion that｜……这一观念",
+   "a vague notion｜模糊的想法",
+   "have no notion｜完全不知道"
+  ],
+  "fam": [],
+  "syn": [
+   "idea",
+   "concept"
+  ],
+  "ant": [],
+  "tip": "常见结构是the notion that，表示“……这一观念”，后接完整从句。",
+  "cefr": "B2",
+  "topic": "thinking",
+  "note": "",
+  "id": "notion"
+ },
+ {
+  "w": "urbanization",
+  "uk": "/ˌɜːbənaɪˈzeɪʃən/",
+  "us": "/ˌɝːbənəˈzeɪʃən/",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "城市化；都市化",
+    "en": "The process in which cities grow and a larger share of the population lives in urban areas."
+   }
+  ],
+  "ex": [
+   {
+    "en": "Rapid urbanization has increased the demand for public transport.",
+    "zh": "快速城市化增加了对公共交通的需求。"
+   },
+   {
+    "en": "The report examines how urbanization changes nearby farmland and local water use.",
+    "zh": "这份报告研究了城市化如何改变周边农田和当地用水。"
+   }
+  ],
+  "col": [
+   "rapid urbanization｜快速城市化",
+   "urbanization process｜城市化进程",
+   "urbanization rate｜城市化率"
+  ],
+  "fam": [
+   "urban (adj.)",
+   "urbanize (v.)"
+  ],
+  "syn": [],
+  "ant": [],
+  "tip": "指人口向城市集中以及城市扩张的社会过程；英式英语也常拼作urbanisation。",
+  "cefr": "C1",
+  "topic": "city",
+  "note": "",
+  "id": "urbanization"
+ },
+ {
+  "w": "abate",
+  "uk": "ә'beit",
+  "us": "ә'beit",
+  "senses": [
+   {
+    "pos": "v.",
+    "zh": "vt. 减少, 减轻, 减弱, 废除, 打折扣；vi. 减轻, 减弱, 减少, 失效, 被废除",
+    "en": "become less in amount or intensity"
+   }
+  ],
+  "ex": [
+   {
+    "en": "The storm began to abate by midnight.",
+    "zh": "暴风雨在午夜前开始减弱。"
+   },
+   {
+    "en": "Her anger gradually abated after they talked.",
+    "zh": "他们交谈后，她的怒气逐渐平息了。"
+   }
+  ],
+  "col": [
+   "abate the pain",
+   "the storm abates",
+   "anger abates"
+  ],
+  "fam": [
+   "abatement",
+   "abated",
+   "abating"
+  ],
+  "syn": [
+   "decrease",
+   "lessen",
+   "diminish",
+   "subside"
+  ],
+  "ant": [
+   "increase",
+   "intensify",
+   "worsen"
+  ],
+  "tip": "Abate通常表示数量、强度或情绪逐渐减弱；常用于风暴、疼痛、愤怒等。",
+  "cefr": "C1",
+  "topic": "emotion",
+  "note": "",
+  "id": "abate"
+ },
+ {
+  "w": "works",
+  "uk": "/wɜːks/",
+  "us": "/wɝːks/",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "善行；德行",
+    "en": "performance of moral or religious acts"
+   },
+   {
+    "pos": "n.",
+    "zh": "活动部件；机件；工程；工厂；工事；著作；作品；[机]工厂；工场",
+    "en": "the internal mechanism of a device"
+   }
+  ],
+  "ex": [
+   {
+    "en": "His good works earned him the respect of the community.",
+    "zh": "他的善行赢得了社区的尊敬。"
+   },
+   {
+    "en": "The clock's inner works need to be cleaned.",
+    "zh": "这座钟的内部机件需要清洁。"
+   }
+  ],
+  "col": [
+   "good works｜善行",
+   "inner works｜内部机件",
+   "works of art｜艺术作品"
+  ],
+  "fam": [
+   "work",
+   "worker",
+   "workshop"
+  ],
+  "syn": [
+   "deeds",
+   "mechanism"
+  ],
+  "ant": [],
+  "tip": "works是work的复数；在the works中可指机器的内部机件，也可表示著作、作品或善行。",
+  "cefr": "B1",
+  "topic": "technology",
+  "note": "",
+  "id": "works"
+ },
+ {
+  "w": "scenario",
+  "uk": "si'nɑ:riәu",
+  "us": "si'nɑ:riәu",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "剧本提纲；情节；剧本",
+    "en": "an outline or synopsis of a play, or of a literary work"
+   },
+   {
+    "pos": "n.",
+    "zh": "情节；剧本；方案",
+    "en": "a setting for a work of art or literature"
+   },
+   {
+    "pos": "n.",
+    "zh": "方案；事态",
+    "en": "a postulated sequence of possible events"
+   }
+  ],
+  "ex": [
+   {
+    "en": "The team discussed several possible scenarios before making a decision.",
+    "zh": "团队在作出决定前讨论了几种可能的方案。"
+   },
+   {
+    "en": "In the worst-case scenario, the flight will be delayed overnight.",
+    "zh": "在最坏的情况下，航班将延误一整晚。"
+   }
+  ],
+  "col": [
+   "possible scenario｜可能的情形",
+   "worst-case scenario｜最坏情况",
+   "scenario planning｜情景规划"
+  ],
+  "fam": [
+   "scenario-based",
+   "scenario planning"
+  ],
+  "syn": [
+   "outline",
+   "situation",
+   "possibility"
+  ],
+  "ant": [],
+  "tip": "scenario常指可能发生的情形或事件序列，尤其用于规划和预测语境。",
+  "cefr": "B2",
+  "topic": "thinking",
+  "note": "",
+  "id": "scenario"
+ },
+ {
+  "w": "exploit",
+  "uk": "'eksplɒit",
+  "us": "/ɪkˈsplɔɪt/",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "功绩；勋绩",
+    "en": "a notable or heroic deed"
+   },
+   {
+    "pos": "v.",
+    "zh": "利用或操纵以谋取优势",
+    "en": "use or manipulate to one's advantage"
+   },
+   {
+    "pos": "v.",
+    "zh": "从……中提取；充分利用",
+    "en": "draw from; make good use of"
+   }
+  ],
+  "ex": [
+   {
+    "en": "The company exploited the new technology to reduce costs.",
+    "zh": "这家公司利用新技术降低了成本。"
+   },
+   {
+    "en": "She exploited her experience to build a successful business.",
+    "zh": "她充分利用自己的经验，创办了一家成功的企业。"
+   }
+  ],
+  "col": [
+   "exploit a weakness｜利用弱点",
+   "exploit an opportunity｜利用机会",
+   "exploit natural resources｜开发自然资源",
+   "be exploited by｜被……利用或剥削"
+  ],
+  "fam": [
+   "exploitation",
+   "exploitative",
+   "exploiter"
+  ],
+  "syn": [
+   "utilize",
+   "take advantage of",
+   "leverage"
+  ],
+  "ant": [
+   "neglect",
+   "waste",
+   "underuse"
+  ],
+  "tip": "exploit作动词时既可表示中性地充分利用，也可表示不公平地利用或剥削，具体含义取决于语境。",
+  "cefr": "C1",
+  "topic": "technology",
+  "note": "",
+  "id": "exploit"
+ },
+ {
+  "w": "enterprise",
+  "uk": "'entәpraiz",
+  "us": "'entәpraiz",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "企业；事业；需要努力或勇气的有目的或勤奋的活动",
+    "en": "a purposeful or industrious undertaking, especially one that requires effort or boldness"
+   },
+   {
+    "pos": "n.",
+    "zh": "企业；为商业活动创办的组织",
+    "en": "an organization created for business ventures"
+   },
+   {
+    "pos": "n.",
+    "zh": "事业心；进取心；干事业的意愿",
+    "en": "readiness to embark on bold new ventures"
+   }
+  ],
+  "ex": [
+   {
+    "en": "Starting a small business was a risky but rewarding enterprise.",
+    "zh": "创办一家小企业是一项有风险但很有回报的事业。"
+   },
+   {
+    "en": "Her enterprise and determination helped the company expand overseas.",
+    "zh": "她的事业心和决心帮助公司拓展了海外市场。"
+   }
+  ],
+  "col": [
+   "business enterprise｜商业企业",
+   "commercial enterprise｜商业企业",
+   "private enterprise｜私营企业",
+   "state-owned enterprise｜国有企业",
+   "enterprise software｜企业软件"
+  ],
+  "fam": [
+   "entrepreneur",
+   "entrepreneurial",
+   "entrepreneurship"
+  ],
+  "syn": [
+   "venture",
+   "undertaking",
+   "business",
+   "initiative"
+  ],
+  "ant": [],
+  "tip": "enterprise既可指企业，也可指开展大胆事业所需的进取心和行动力。",
+  "cefr": "B2",
+  "topic": "work",
+  "note": "",
+  "id": "enterprise"
+ },
+ {
+  "w": "denial",
+  "uk": "di'naiәl",
+  "us": "di'naiәl",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "否认",
+    "en": "the act of refusing to comply (as with a request)"
+   },
+   {
+    "pos": "n.",
+    "zh": "[法] 否定, 否认, 拒绝接受",
+    "en": "the act of asserting that something alleged is not true"
+   },
+   {
+    "pos": "n.",
+    "zh": "否认",
+    "en": "(psychiatry) a defense mechanism that denies painful thoughts"
+   }
+  ],
+  "ex": [
+   {
+    "en": "His denial of the allegations surprised everyone.",
+    "zh": "他否认这些指控，让所有人都感到惊讶。"
+   },
+   {
+    "en": "Denial can be a defense mechanism against painful thoughts.",
+    "zh": "否认可能是一种抵御痛苦想法的心理防御机制。"
+   }
+  ],
+  "col": [
+   "complete denial｜完全否认",
+   "denial of responsibility｜否认责任",
+   "in denial｜拒绝接受现实"
+  ],
+  "fam": [
+   "deny",
+   "deniable",
+   "denial"
+  ],
+  "syn": [
+   "rejection",
+   "disavowal",
+   "refusal"
+  ],
+  "ant": [
+   "acceptance",
+   "admission",
+   "acknowledgment"
+  ],
+  "tip": "denial可以表示拒绝接受请求、否认事实，也可指心理防御机制；不要与动词deny混淆。",
+  "cefr": "C1",
+  "topic": "thinking",
+  "note": "",
+  "id": "denial"
+ },
+ {
+  "w": "might",
+  "uk": "maɪt",
+  "us": "maɪt",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "力量；权力",
+    "en": "physical strength"
+   },
+   {
+    "pos": "aux.",
+    "zh": "可能；也许",
+    "en": "used to express possibility"
+   }
+  ],
+  "ex": [
+   {
+    "en": "It might rain this afternoon.",
+    "zh": "今天下午可能会下雨。"
+   },
+   {
+    "en": "The warrior fought with all his might.",
+    "zh": "那名战士竭尽全力战斗。"
+   }
+  ],
+  "col": [
+   "might be",
+   "might have",
+   "with all one's might"
+  ],
+  "fam": [
+   "mighty",
+   "mightily"
+  ],
+  "syn": [
+   "strength",
+   "power",
+   "may"
+  ],
+  "ant": [
+   "weakness",
+   "certainty"
+  ],
+  "tip": "作情态动词时，might 后接动词原形，表示不太确定的可能性；作名词时常见于 with all one's might，意为“竭尽全力”。",
+  "cefr": "A2",
+  "topic": "thinking",
+  "note": "",
+  "id": "might"
+ },
+ {
+  "w": "part",
+  "uk": "/pɑːt/",
+  "us": "/pɑːrt/",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "部分；局部；等分",
+    "en": "something determined in relation to a whole that includes it"
+   },
+   {
+    "pos": "n.",
+    "zh": "零件；部件；组成要素",
+    "en": "something less than the whole of a human-made object"
+   },
+   {
+    "pos": "n.",
+    "zh": "部位；一部分",
+    "en": "a portion of a natural object"
+   },
+   {
+    "pos": "n.",
+    "zh": "职责；角色；本分",
+    "en": "what concerns a person in a particular role or situation"
+   },
+   {
+    "pos": "v.",
+    "zh": "分开；分离；断裂；分手；区别；分配",
+    "en": "to separate, divide, or leave someone"
+   },
+   {
+    "pos": "adj./adv.",
+    "zh": "部分的；局部的；部分地；有些",
+    "en": "partial; partly"
+   }
+  ],
+  "ex": [
+   {
+    "en": "This small part controls the whole machine.",
+    "zh": "这个小零件控制着整台机器。"
+   },
+   {
+    "en": "They parted at the station after saying goodbye.",
+    "zh": "他们道别后在车站分开了。"
+   }
+  ],
+  "col": [
+   "part of",
+   "take part in",
+   "play a part in",
+   "for the most part",
+   "part with"
+  ],
+  "fam": [
+   "partly",
+   "partial",
+   "partition",
+   "participant",
+   "participate"
+  ],
+  "syn": [
+   "portion",
+   "section",
+   "component",
+   "role",
+   "separate"
+  ],
+  "ant": [
+   "whole",
+   "entirety",
+   "join",
+   "unite"
+  ],
+  "tip": "作名词时，part of 表示“……的一部分”；take part in 表示“参加”。作动词时，part 可表示“分开、离别”。",
+  "cefr": "A1",
+  "topic": "daily",
+  "note": "",
+  "id": "part"
+ },
+ {
+  "w": "center",
+  "uk": "'sentә",
+  "us": "'sentә",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "中心；中心点；中锋；专门从事某项活动的中心或场所",
+    "en": "an area approximately central within a larger region; a building dedicated to a particular activity; a point equidistant from the ends of a line or the extremities of a figure"
+   },
+   {
+    "pos": "adj.",
+    "zh": "中央的；位在正中的",
+    "en": "central; located in the middle"
+   },
+   {
+    "pos": "vt.",
+    "zh": "集中；定中心",
+    "en": "to focus or position something at the center"
+   },
+   {
+    "pos": "vi.",
+    "zh": "居中",
+    "en": "to be positioned in the center"
+   }
+  ],
+  "ex": [
+   {
+    "en": "The community center offers free evening classes.",
+    "zh": "这个社区中心提供免费的夜间课程。"
+   },
+   {
+    "en": "Please center the title at the top of the page.",
+    "zh": "请将标题居中放在页面顶部。"
+   }
+  ],
+  "col": [
+   "city center",
+   "shopping center",
+   "center of attention",
+   "center on something"
+  ],
+  "fam": [
+   "central",
+   "centrally",
+   "centralize"
+  ],
+  "syn": [
+   "middle",
+   "core",
+   "hub"
+  ],
+  "ant": [
+   "edge",
+   "periphery"
+  ],
+  "tip": "美式英语通常写作 center；英式英语通常写作 centre。作动词时，center on 表示“以……为中心；集中于”。",
+  "cefr": "A2",
+  "topic": "city",
+  "note": "",
+  "id": "center"
+ },
+ {
+  "w": "color",
+  "uk": "/ˈkʌlə/",
+  "us": "/ˈkʌlər/",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "颜色；面色；颜料；外貌",
+    "en": "a visual attribute of things resulting from the light they emit, transmit, or reflect"
+   },
+   {
+    "pos": "n.",
+    "zh": "趣味；多样性；生动性",
+    "en": "interest, variety, and intensity"
+   },
+   {
+    "pos": "n.",
+    "zh": "音色",
+    "en": "the timbre of a musical sound"
+   },
+   {
+    "pos": "vt.",
+    "zh": "给……涂色；粉饰；使脸红；歪曲",
+    "en": "to add color to something; to influence or distort something"
+   },
+   {
+    "pos": "vi.",
+    "zh": "变色；脸红",
+    "en": "to change color or become red in the face"
+   }
+  ],
+  "ex": [
+   {
+    "en": "What color would you like to paint the wall?",
+    "zh": "你想把这面墙漆成什么颜色？"
+   },
+   {
+    "en": "Personal experience can color our judgment.",
+    "zh": "个人经历可能会影响我们的判断。"
+   }
+  ],
+  "col": [
+   "bright color",
+   "change color",
+   "color a picture",
+   "color one's judgment"
+  ],
+  "fam": [
+   "colorful",
+   "colorless",
+   "coloring",
+   "colored"
+  ],
+  "syn": [
+   "hue",
+   "shade",
+   "tint",
+   "tone"
+  ],
+  "ant": [
+   "colorlessness",
+   "paleness"
+  ],
+  "tip": "英式英语通常拼作 colour，美式英语拼作 color。作动词时，color one's judgment 表示“影响或歪曲某人的判断”。",
+  "cefr": "A1",
+  "topic": "arts",
+  "note": "",
+  "id": "color"
+ },
+ {
+  "w": "check",
+  "uk": "/tʃek/",
+  "us": "/tʃek/",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "检查；核对；验证",
+    "en": "the act of inspecting or verifying"
+   },
+   {
+    "pos": "n.",
+    "zh": "支票",
+    "en": "a written order directing a bank to pay money"
+   },
+   {
+    "pos": "n.",
+    "zh": "餐馆账单",
+    "en": "the bill in a restaurant"
+   },
+   {
+    "pos": "n.",
+    "zh": "阻止物；寄物牌；象棋中的“将军”",
+    "en": "a restraint, a claim token, or an attack on the king in chess"
+   },
+   {
+    "pos": "n.",
+    "zh": "小块被砍掉或折断后留下的痕迹",
+    "en": "a mark left after a small piece has been chopped or broken off something"
+   },
+   {
+    "pos": "vt.",
+    "zh": "检查；阻止；核对；寄存；托运",
+    "en": "to inspect, stop, verify, deposit for safekeeping, or consign as luggage"
+   },
+   {
+    "pos": "vi.",
+    "zh": "逐项相符；开支票",
+    "en": "to correspond item by item or write a check"
+   },
+   {
+    "pos": "计算机用语",
+    "zh": "复选",
+    "en": "to select or mark an option"
+   }
+  ],
+  "ex": [
+   {
+    "en": "Please check your answers before handing in the test.",
+    "zh": "交卷前请检查你的答案。"
+   },
+   {
+    "en": "Could we have the check, please?",
+    "zh": "请把账单给我们好吗？"
+   }
+  ],
+  "col": [
+   "check the details",
+   "check for errors",
+   "write a check",
+   "pay by check",
+   "check in",
+   "check out"
+  ],
+  "fam": [
+   "checker",
+   "checklist",
+   "checkout",
+   "checkpoint"
+  ],
+  "syn": [
+   "inspect",
+   "verify",
+   "examine",
+   "bill"
+  ],
+  "ant": [
+   "ignore",
+   "overlook"
+  ],
+  "tip": "作动词时常表示“检查、核对”；作名词时可表示“检查、支票”，美式英语中还可表示餐馆“账单”。",
+  "cefr": "A2",
+  "topic": "daily",
+  "note": "",
+  "id": "check"
+ },
+ {
+  "w": "trial",
+  "uk": "'traiәl",
+  "us": "'traiәl",
+  "senses": [
+   {
+    "pos": "n.",
+    "zh": "审判",
+    "en": "(law) the determination of a person's innocence or guilt by due process of law"
+   },
+   {
+    "pos": "n.",
+    "zh": "试验",
+    "en": "trying something to find out about it"
+   },
+   {
+    "pos": "n.",
+    "zh": "预赛，资格赛",
+    "en": "(sports) a preliminary competition to determine qualifications"
+   },
+   {
+    "pos": "n.",
+    "zh": "艰苦，考验",
+    "en": "a difficult or testing experience"
+   },
+   {
+    "pos": "n.",
+    "zh": "麻烦事",
+    "en": "an annoying or frustrating or catastrophic event"
+   },
+   {
+    "pos": "a.",
+    "zh": "审讯的，试验性的",
+    "en": "relating to a trial or test"
+   }
+  ],
+  "ex": [
+   {
+    "en": "The athlete won the trial and qualified for the national team.",
+    "zh": "这名运动员赢得了预赛，获得了国家队参赛资格。"
+   },
+   {
+    "en": "The new treatment is still undergoing clinical trials.",
+    "zh": "这种新疗法仍在进行临床试验。"
+   }
+  ],
+  "col": [
+   "trial and error",
+   "clinical trial",
+   "trial period",
+   "on trial"
+  ],
+  "fam": [
+   "trial-and-error",
+   "trialist",
+   "trialing"
+  ],
+  "syn": [
+   "test",
+   "experiment",
+   "hearing",
+   "ordeal"
+  ],
+  "ant": [
+   "certainty",
+   "success"
+  ],
+  "tip": "trial可指法律上的“审判”、为验证某事而进行的“试验”，也可指艰难的“考验”。",
+  "cefr": "B1",
+  "topic": "society",
+  "note": "",
+  "id": "trial"
  }
 ]

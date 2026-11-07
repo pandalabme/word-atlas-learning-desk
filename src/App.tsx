@@ -1,8 +1,10 @@
 import { BookOpen, ChevronLeft, ChevronRight, Compass, Github, Keyboard, Moon, Search, Sun, User } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { AtlasContext, useAtlas, useEntry } from "./atlas/context";
+import { AtlasContext, CurriculumContext, useAtlas, useEntry } from "./atlas/context";
 import { loadOpenAtlas, loadPrivateAtlas } from "./atlas/data";
 import type { Atlas } from "./atlas/types";
+import { loadBuiltInCurricula } from "./curriculum/data";
+import type { Curriculum } from "./curriculum/types";
 import { REPO_URL } from "./config";
 import { closeWord, currentLocation, go, openWord, useLocation, type Route } from "./lib/router";
 import { AtlasPage } from "./pages/Atlas";
@@ -24,6 +26,7 @@ import { Palette } from "./ui/Palette";
 import { Sheet } from "./ui/Sheet";
 import { shouldShowSplash, Splash } from "./ui/Splash";
 import { Toasts } from "./ui/Toast";
+import { CurriculumPicker } from "./ui/CurriculumPicker";
 
 const NAV: { page: Route["page"]; label: string; icon: typeof Compass }[] = [
   { page: "today", label: "今日", icon: Compass },
@@ -49,8 +52,10 @@ export default function App() {
   const [atlas, setAtlas] = useState<Atlas | null>(null);
   const [open, setOpen] = useState<Atlas | null>(null);
   const [priv, setPriv] = useState<Atlas | null>(null);
+  const [curricula, setCurricula] = useState<Curriculum[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const dataset = useStore((s) => s.settings.dataset);
+  const curriculumId = useStore((s) => s.settings.curriculum);
   useTheme();
 
   useEffect(() => {
@@ -71,6 +76,25 @@ export default function App() {
     }
   }, [dataset, open, priv, atlas]);
 
+  useEffect(() => {
+    if (!atlas) return;
+    let live = true;
+    setCurricula(null);
+    loadBuiltInCurricula(atlas).then(
+      (loaded) => live && setCurricula(loaded),
+      (e: Error) => live && setError(e.message),
+    );
+    return () => {
+      live = false;
+    };
+  }, [atlas]);
+
+  const curriculum = curricula?.find((item) => item.id === curriculumId) ?? curricula?.[0] ?? null;
+
+  useEffect(() => {
+    if (curriculum && curriculum.id !== curriculumId) store.settings({ curriculum: curriculum.id });
+  }, [curriculum, curriculumId]);
+
   if (error)
     return (
       <div className="boot">
@@ -81,7 +105,7 @@ export default function App() {
         </button>
       </div>
     );
-  if (!atlas)
+  if (!atlas || !curricula || !curriculum)
     return (
       <div className="boot" aria-busy="true">
         <Logo />
@@ -90,12 +114,14 @@ export default function App() {
     );
   return (
     <AtlasContext.Provider value={atlas}>
-      <Shell privateAvailable={!!priv} />
+      <CurriculumContext.Provider value={{ current: curriculum, all: curricula }}>
+        <Shell privateAvailable={!!priv} curricula={curricula} curriculum={curriculum} />
+      </CurriculumContext.Provider>
     </AtlasContext.Provider>
   );
 }
 
-function Shell({ privateAvailable }: { privateAvailable: boolean }) {
+function Shell({ privateAvailable, curricula, curriculum }: { privateAvailable: boolean; curricula: Curriculum[]; curriculum: Curriculum }) {
   const { route, word } = useLocation();
   const onboarded = useStore((s) => s.settings.onboarded);
   const theme = useStore((s) => s.settings.theme);
@@ -192,6 +218,7 @@ function Shell({ privateAvailable }: { privateAvailable: boolean }) {
             ))}
           </nav>
           <div className="topbar-tools">
+            <CurriculumPicker curricula={curricula} value={curriculum.id} onChange={(id) => store.settings({ curriculum: id })} compact />
             <button className="search-pill" onClick={() => setPalette(true)} aria-label="搜索单词">
               <Search size={17} />
               <span>搜索单词</span>
@@ -222,7 +249,7 @@ function Shell({ privateAvailable }: { privateAvailable: boolean }) {
         <footer className="footer">
           <Logo compact />
           <p>
-            一词一画，点亮雅思 · 免费开源 ·{" "}
+            一词一画，点亮英语 · 免费开源 ·{" "}
             <a href={REPO_URL} target="_blank" rel="noreferrer">
               GitHub
             </a>{" "}

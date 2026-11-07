@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "batchId": "pipeline-test-random5-20261105",
+  "planHash": "46ea817b558f59d93d84950fc2b156324f1b34e7f465ea4bd72726ab6e8ec260",
+  "files": {
+    "img/works.webp": {
+      "sha256": "a737cf04bd1a81f7dd756b484fba8ce39ff774120bd446cbecc78c42ffa8a2db",
+      "size": 95110,
+      "mock": false
+    },
+    "thumb/works.webp": {
+      "sha256": "7b28912c38da36693be7f489843ecad456697f5a434bcbee818d0cfc99fd6058",
+      "size": 11994,
+      "mock": false
+    },
+    "audio/uk/works.mp3": {
+      "sha256": "8333021902b767d388ab724cfb9bb65c1e46c420859ec5fc2b202406fac0d715",
+      "size": 6939,
+      "mock": false
+    },
+    "audio/us/works.mp3": {
+      "sha256": "a8b6ad29e5e4c8105b5aefd6ed90798f5de8a9ff28d24225f2404874827208ad",
+      "size": 7566,
+      "mock": false
+    },
+    "audio/ex/works.mp3": {
+      "sha256": "4554835d25fd23e6709897fae457d7a6a4af5e15d7189a90072d4503bf564177",
+      "size": 26792,
+      "mock": false
+    },
+    "img/scenario.webp": {
+      "sha256": "1cf53974a7d0510abfbee4fe3fca8c7dc4dd5ead7dc8005ddec726d3e9d68d65",
+      "size": 77356,
+      "mock": false
+    },
+    "thumb/scenario.webp": {
+      "sha256": "cfc4e10c7c0d98d9980261f8bbfa6ecb1f5923e1efe0956181eeea8e8d358907",
+      "size": 10956,
+      "mock": false
+    },
+    "audio/uk/scenario.mp3": {
+      "sha256": "840b2774e8968778cae36b63d8078fa23a6a05f4e635adb75ee5958d4f6e9156",
+      "size": 8820,
+      "mock": false
+    },
+    "audio/us/scenario.mp3": {
+      "sha256": "281b90ac9d22fbe01d19c254c7ded2a8eabb2f4c097db77e198096a1a5c50ea0",
+      "size": 9447,
+      "mock": false
+    },
+    "audio/ex/scenario.mp3": {
+      "sha256": "1b6d866d1df348776430279fc15c92d8479107848324bbcac52a596443f16a76",
+      "size": 35778,
+      "mock": false
+    },
+    "img/exploit.webp": {
+      "sha256": "962cbe92fe0663fcd989ab88d8bed19c5833a10b0a9e609a0b9fa00a8a5cac16",
+      "size": 65692,
+      "mock": false
+    },
+    "thumb/exploit.webp": {
+      "sha256": "f34d870a8c9b3a2edfb45437e857ba07978d6019db35862f152d3fd75da193b9",
+      "size": 10228,
+      "mock": false
+    },
+    "audio/uk/exploit.mp3": {
+      "sha256": "fdb7707722759ba0fe53a6d3ccb8e244619c68b6763ccc91569d8fee0008379f",
+      "size": 9447,
+      "mock": false
+    },
+    "audio/us/exploit.mp3": {
+      "sha256": "040099db84e97b94fb8c13525a7136526130aa554dfe3e1aa39c1c43514f75c1",
+      "size": 10074,
+      "mock": false
+    },
+    "audio/ex/exploit.mp3": {
+      "sha256": "dc36ed681d0353f680ee4cedb0cf49b51c056fe0e08c7a71d75bd55727d42385",
+      "size": 30554,
+      "mock": false
+    },
+    "img/enterprise.webp": {
+      "sha256": "98564b989b7bd2ac1dc163346efb69568f7167878cda6e1458b25b17656e4e29",
+      "size": 94814,
+      "mock": false
+    },
+    "thumb/enterprise.webp": {
+      "sha256": "60b5d23b1039f55ef50ed27a7d98873f83beaef434f45db71df295247b5be8a4",
+      "size": 11074,
+      "mock": false
+    },
+    "audio/uk/enterprise.mp3": {
+      "sha256": "c873d2cee9ac5681125d16adb4d1ded12836e0f50df236d99335b4440045870f",
+      "size": 8820,
+      "mock": false
+    },
+    "audio/us/enterprise.mp3": {
+      "sha256": "76331883fd984981220e8d267c1a18d0de5ccdf3a54aa098d623d43396472167",
+      "size": 8820,
+      "mock": false
+    },
+    "audio/ex/enterprise.mp3": {
+      "sha256": "a9bf2c651af90bb60dbef0f7baa7458cc10bdd40155150f2bde9c51fc75b5dec",
+      "size": 34524,
+      "mock": false
+    },
+    "img/denial.webp": {
+      "sha256": "38b3360722c410a4d1da4d268cd3e0d2b0c88a88faae3fbea0ac15a4b95825b9",
+      "size": 100848,
+      "mock": false
+    },
+    "thumb/denial.webp": {
+      "sha256": "12533bc242dcaf48bb52e1992b15435da95d781f8cd306500f9616d915776ec3",
+      "size": 9980,
+      "mock": false
+    },
+    "audio/uk/denial.mp3": {
+      "sha256": "1e26df198d99501dd2d88793f489e343cce510d7bad947a3a35a9acf8c31c971",
+      "size": 8193,
+      "mock": false
+    },
+    "audio/us/denial.mp3": {
+      "sha256": "eb1cb6543421f62e2b70dc1cd61859a8e94d9ad40cd415b961380d03f1ce5715",
+      "size": 9447,
+      "mock": false
+    },
+    "audio/ex/denial.mp3": {
+      "sha256": "5a7f6ab752336a51690692a32b2f921b32efda9e93163cf439e3f2d88ce151bc",
+      "size": 28046,
+      "mock": false
+    }
+  }
+}

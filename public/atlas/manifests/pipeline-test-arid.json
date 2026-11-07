@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "batchId": "pipeline-test-arid",
+  "planHash": "477d3483c9bb6b141a083d8dc1beeffbfbdfcc290ab89c4955235db0001b32f1",
+  "files": {
+    "img/arid.webp": {
+      "sha256": "1ea535c5bdf210e36ce775626af9aee2054ce483a3a7151481c0f98f2ec957c8",
+      "size": 80614,
+      "mock": false
+    },
+    "thumb/arid.webp": {
+      "sha256": "69b02c7ee83fbaca726f81aa3e8d164932477135c2bdd7a888b781910cfce626",
+      "size": 12476,
+      "mock": false
+    },
+    "audio/uk/arid.mp3": {
+      "sha256": "9555801c97fecc3b5df3c05ed26817dc3ee61c08e1a229c7c0a3ee62bfce67e7",
+      "size": 6939,
+      "mock": false
+    },
+    "audio/us/arid.mp3": {
+      "sha256": "fa4b11f5dd1b6ac9486377fd0fdbaf1a673ba06dc16a8dde49bd21f98f8ec742",
+      "size": 8193,
+      "mock": false
+    },
+    "audio/ex/arid.mp3": {
+      "sha256": "7a2353b6d2d99a372775a9787ae8b2b3f68764bb858e2dd22456edbbbbd2d42d",
+      "size": 32643,
+      "mock": false
+    }
+  }
+}

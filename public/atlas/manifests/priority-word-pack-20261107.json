@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "batchId": "priority-word-pack-20261107",
+  "planHash": "0462c3c09ec19e39ed197ae46c86db1986e035c14533a2322eeaf86e4e1a45b5",
+  "files": {
+    "img/trial.webp": {
+      "sha256": "9f50afb85517458eba7a4aeb94497a61b90631eeb03db845648842f064d28621",
+      "size": 65486,
+      "mock": false
+    },
+    "thumb/trial.webp": {
+      "sha256": "7a141ecf07fef375a8125b4ff92ae5dfda8001e04df4f7217ff9af41947a201a",
+      "size": 10660,
+      "mock": false
+    },
+    "audio/uk/trial.mp3": {
+      "sha256": "98cf7f0f289e1fa542f22f6fb75e7f4b2c12c47fc02c2d9548c00d7710662616",
+      "size": 6939,
+      "mock": false
+    },
+    "audio/us/trial.mp3": {
+      "sha256": "e7c32dcc053339893e111aea4f71d10051e5c3576df44c014bc1e857cd286c93",
+      "size": 7566,
+      "mock": false
+    },
+    "audio/ex/trial.mp3": {
+      "sha256": "9b7ffab84210e253b5d5b2730e6081791860a2a2d6983994b7fe41dbde7a9b10",
+      "size": 31180,
+      "mock": false
+    }
+  }
+}

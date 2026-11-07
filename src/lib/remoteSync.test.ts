@@ -60,8 +60,8 @@ test("maps loaded atlas word refs to safe label IDs and words", () => {
     cards: [{ id: "a:1", word: "abandon" }, { id: "wood-shed", word: "woodshed" }],
   });
   assert.throws(() => buildLabelBody("p", "d", [{ id: "not/allowed", text: "word" }], requestId), /不安全字符/);
-  assert.throws(() => buildLabelBody("p", "d", [], requestId), /1 到 64/);
-  assert.throws(() => buildLabelBody("p", "d", Array.from({ length: 65 }, (_, i) => ({ id: `w${i}`, text: `word${i}` })), requestId), /1 到 64/);
+  assert.throws(() => buildLabelBody("p", "d", [], requestId), /1 到 150/);
+  assert.throws(() => buildLabelBody("p", "d", Array.from({ length: 151 }, (_, i) => ({ id: `w${i}`, text: `word${i}` })), requestId), /1 到 150/);
 });
 
 test("posts label words using an independent bearer token", async () => {
