@@ -289,6 +289,33 @@ function removeRemotelyReviewedWord(progress: Progress, wordId: string, finished
   };
 }
 
+/** Merge two independently started journeys without restoring completed words. */
+function mergeActiveSessions(current: ActiveSession, incoming: ActiveSession): ActiveSession {
+  // A different learning path has a different ordered plan. Keep the existing
+  // path's winner rule for that case; same-path journeys can be merged safely
+  // by stable word IDs.
+  if (current.curriculumId && incoming.curriculumId && current.curriculumId !== incoming.curriculumId)
+    return incoming.started > current.started ? incoming : current;
+
+  const completed = new Set([...Object.keys(current.graded), ...Object.keys(incoming.graded)]);
+  const steps = current.steps.filter((step, index) => index < current.index || !completed.has(step.id));
+  const present = new Set(steps.map((step) => step.id));
+  const additions = incoming.steps.slice(incoming.index).filter((step) => !completed.has(step.id) && !present.has(step.id));
+  const mergedSteps = [...steps, ...additions];
+  const index = Math.min(current.index, mergedSteps.length);
+  const newIds = [...new Set([...current.newIds, ...incoming.newIds])].filter((id) => !completed.has(id));
+  const reviewIds = [...new Set([...current.reviewIds, ...incoming.reviewIds])].filter((id) => !completed.has(id));
+  return {
+    ...current,
+    steps: mergedSteps,
+    index,
+    graded: { ...incoming.graded, ...current.graded },
+    newIds,
+    reviewIds,
+    ...(index >= mergedSteps.length ? { finished: current.finished ?? incoming.finished ?? Date.now() } : { finished: undefined }),
+  };
+}
+
 /** Replays only other devices' events in stable time/sequence order. */
 export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSyncEvent[], ownDeviceId: string): EventSyncSnapshot {
   const ordered = [...events]
@@ -403,9 +430,15 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
           ? payload.session_started
           : undefined;
         if (session !== undefined) {
-          if (session && (!current || session.id === current.id || session.started > current.started))
+          if (session && !current)
             progress = { ...progress, session };
-          else if (session === null && (!current || !sessionId || current.id === sessionId || (sessionStarted !== undefined && current.started <= sessionStarted)))
+          else if (session && current && session.id === current.id)
+            progress = { ...progress, session };
+          else if (session && current && current.finished && !session.finished)
+            progress = { ...progress, session };
+          else if (session && current && !current.finished)
+            progress = { ...progress, session: mergeActiveSessions(current, session) };
+          else if (session === null && (!current || (sessionId && current.id === sessionId) || (current.finished && sessionStarted !== undefined && current.started <= sessionStarted)))
             progress = { ...progress, session: null };
         }
       }

@@ -65,7 +65,7 @@ test("replay applies and clears manual atlas statuses from another device", () =
   assert.equal(restored.progress.manualStatuses.apple, undefined);
 });
 
-test("replay replaces an active journey checkpoint and clears it after remote completion", () => {
+test("replay merges a completed remote journey and clears it after remote completion", () => {
   const initial = emptySyncSnapshot("word-atlas-open");
   initial.progress.session = {
     id: "pc-session", started: 10, steps: [{ id: "apple", kind: "intro" }], index: 0,
@@ -73,16 +73,48 @@ test("replay replaces an active journey checkpoint and clears it after remote co
   };
   const remoteSession: SyncEvent = {
     event_id: uid(40), occurred_at: "2026-01-01T00:00:01.000Z", kind: "session",
-    payload: { session: { id: "phone-session", started: 20, steps: [{ id: "apple", kind: "intro" }], index: 1, graded: {}, newIds: ["apple"], reviewIds: [] } },
+    payload: { session: { id: "phone-session", started: 20, steps: [{ id: "apple", kind: "intro" }], index: 1, graded: { apple: Rating.Good }, newIds: ["apple"], reviewIds: [] } },
   };
   const remoteDone: SyncEvent = {
     event_id: uid(41), occurred_at: "2026-01-01T00:00:02.000Z", kind: "session", payload: { session: null },
   };
   const resumed = replaySyncEvents(initial, [serverEvent(1, "phone", remoteSession)], "pc");
-  assert.equal(resumed.progress.session?.id, "phone-session");
-  assert.equal(resumed.progress.session?.index, 1);
-  const completed = replaySyncEvents(resumed, [serverEvent(2, "phone", remoteDone)], "pc");
+  assert.equal(resumed.progress.session?.id, "pc-session");
+  assert.equal(resumed.progress.session?.finished !== undefined, true);
+  const completed = replaySyncEvents(resumed, [serverEvent(2, "phone", { ...remoteDone, payload: { session: null, session_id: "phone-session", session_started: 20 } })], "pc");
   assert.equal(completed.progress.session, null);
+});
+
+test("independently started journeys merge completed words instead of replacing each other", () => {
+  const initial = emptySyncSnapshot("word-atlas-open");
+  initial.progress.session = {
+    id: "local-session", started: 100,
+    steps: [
+      { id: "a", kind: "intro" }, { id: "a", kind: "meaning", options: ["a", "b", "c"] },
+      { id: "b", kind: "intro" }, { id: "b", kind: "meaning", options: ["a", "b", "c"] },
+      { id: "c", kind: "intro" }, { id: "c", kind: "meaning", options: ["a", "b", "c"] },
+    ],
+    index: 0, graded: {}, newIds: ["a", "b", "c"], reviewIds: [],
+    curriculumId: "ielts",
+  };
+  const remote: SyncEvent = {
+    event_id: uid(46), occurred_at: "2026-01-01T00:00:05.000Z", kind: "session",
+    payload: {
+      session: {
+        id: "remote-session", started: 200,
+        steps: [
+          { id: "a", kind: "intro" }, { id: "a", kind: "meaning", options: ["a", "b", "c"] },
+          { id: "b", kind: "intro" }, { id: "b", kind: "meaning", options: ["a", "b", "c"] },
+          { id: "c", kind: "intro" }, { id: "c", kind: "meaning", options: ["a", "b", "c"] },
+        ],
+        index: 4, graded: { a: Rating.Good, b: Rating.Good }, newIds: ["a", "b", "c"], reviewIds: [], curriculumId: "ielts",
+      },
+    },
+  };
+  const merged = replaySyncEvents(initial, [serverEvent(1, "phone", remote)], "pc");
+  assert.equal(merged.progress.session?.id, "local-session");
+  assert.deepEqual(merged.progress.session?.steps.map((step) => step.id), ["c", "c"]);
+  assert.deepEqual(merged.progress.session?.newIds, ["c"]);
 });
 
 test("remote reviews remove already completed words from the pending local journey", () => {
