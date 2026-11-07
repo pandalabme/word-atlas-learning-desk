@@ -4,11 +4,12 @@ import { EXAM_TAG_LABELS } from "../atlas/examTags";
 import { useAtlas, useCurriculum } from "../atlas/context";
 import { splitHighlight, splitPair } from "../lib/text";
 import { formatInterval } from "../store/srs";
-import { setManualStatus, toggleBookmark, useStore, wordStatus, type WordStatus } from "../store/store";
+import { setManualStatus, toggleBookmark, useStore, wordStatus } from "../store/store";
 import { Illustration } from "./Illustration";
 import { Speak } from "./Speak";
 import { shareWord } from "./share";
 import { openWord } from "../lib/router";
+import { StatusSwitch } from "./StatusSwitch";
 
 export function Highlight({ text, word }: { text: string; word: string }) {
   const parts = splitHighlight(text, word);
@@ -109,18 +110,13 @@ export function EntryView({ entry, mode = "detail", eager = true }: { entry: Ent
         {mode === "detail" && (
           <div className="manual-status" role="group" aria-label="手动学习状态">
             <span className="manual-status-label">手动状态</span>
-            <div className="segmented">
-              {([["", "自动"], ["learning", "学习中"], ["mastered", "已掌握"]] as [WordStatus | "", string][]).map(([value, label]) => (
-                <button
-                  key={value || "auto"}
-                  className={(manualStatus ?? "") === value ? "is-on" : ""}
-                  onClick={() => setManualStatus(entry.id, value || null)}
-                  aria-pressed={(manualStatus ?? "") === value}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <StatusSwitch
+              word={entry.w}
+              status={status}
+              manualStatus={manualStatus}
+              onChange={(value) => setManualStatus(entry.id, value)}
+              onReset={() => setManualStatus(entry.id, null)}
+            />
           </div>
         )}
 

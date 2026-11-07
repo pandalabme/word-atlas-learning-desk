@@ -10,6 +10,7 @@ import { setManualStatus, useStore, wordStatus } from "../store/store";
 import { Illustration } from "../ui/Illustration";
 import { searchAtlas } from "../ui/Palette";
 import { Speak } from "../ui/Speak";
+import { StatusSwitch } from "../ui/StatusSwitch";
 
 type Status = "all" | "new" | "learning" | "mastered" | "saved";
 const STATUS: [Status, string][] = [
@@ -383,7 +384,6 @@ function VirtualList({
     <div ref={box} className="vlist" style={{ height: items.length * rowH }}>
       {items.slice(a, b).map((w, i) => {
         const card = cards[w.id];
-        const manualStatus = manualStatuses[w.id] ?? "";
         return (
           <div
             key={w.id}
@@ -405,21 +405,13 @@ function VirtualList({
             </span>
             <span className="row-ipa ipa">{w.ipa}</span>
             <span className="row-zh">{w.zh}</span>
-            <select
-              className="row-status"
-              value={manualStatus}
-              aria-label={`${w.word} 手动状态`}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => {
-                e.stopPropagation();
-                const value = e.target.value;
-                setManualStatus(w.id, value === "learning" || value === "mastered" ? value : null);
-              }}
-            >
-              <option value="">自动</option>
-              <option value="learning">学习中</option>
-              <option value="mastered">已掌握</option>
-            </select>
+            <StatusSwitch
+              word={w.word}
+              status={wordStatus(card, manualStatuses[w.id])}
+              manualStatus={manualStatuses[w.id]}
+              onChange={(value) => setManualStatus(w.id, value)}
+              onReset={() => setManualStatus(w.id, null)}
+            />
             <span className={`row-dot ${wordStatus(card, manualStatuses[w.id]) ? `is-${wordStatus(card, manualStatuses[w.id])}` : ""}`} />
             <Speak
               url={atlas.audio(w, accent)}
