@@ -232,6 +232,32 @@ test("sync persists integer cursor and device-scoped outbox across bounded pagin
   assert.deepEqual(applied.progress.bookmarks, ["two"]);
 });
 
+test("sync emits a fresh active-journey checkpoint after the old cursor was consumed", async () => {
+  const storage = new MemoryStorage();
+  const snapshot = emptySyncSnapshot("word-atlas-open");
+  snapshot.progress.session = {
+    id: "active-session", started: 10, steps: [{ id: "apple", kind: "intro" }], index: 0,
+    graded: {}, newIds: ["apple"], reviewIds: [], curriculumId: "ielts",
+  };
+  const requests: SyncEvent[][] = [];
+  let sequence = 31873;
+  await syncEventStream({ ...config, deviceId: "device-checkpoint" }, snapshot.progress.datasetId, {
+    storage,
+    getCurrent: () => snapshot,
+    apply: () => undefined,
+    makeBootstrap: () => [],
+    fetcher: async (_input, init) => {
+      const body = JSON.parse(String(init?.body)) as { events: SyncEvent[] };
+      requests.push(body.events);
+      const events = body.events.map((event) => serverEvent(++sequence, "device-checkpoint", event));
+      return new Response(JSON.stringify({ cursor: sequence, events, has_more: false }), { status: 200 });
+    },
+  });
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0][0]?.kind, "session");
+  assert.equal((requests[0][0]?.payload.session as { id: string }).id, "active-session");
+});
+
 test("events queued for one device are not sent under a different device identity", () => {
   const storage = new MemoryStorage();
   const event: SyncEvent = { event_id: uid(20), occurred_at: new Date(0).toISOString(), kind: "bookmark", payload: { word_id: "x", action: "add" } };

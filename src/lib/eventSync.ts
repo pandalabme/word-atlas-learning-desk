@@ -38,6 +38,8 @@ const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const OUTBOX_KEY = (device: string, dataset: string) => `word-atlas:event-outbox:v1:${encodeURIComponent(device)}:${encodeURIComponent(dataset)}`;
 const CURSOR_KEY = (profile: string, device: string, dataset: string) =>
   `word-atlas:event-cursor:v1:${encodeURIComponent(profile)}:${encodeURIComponent(device)}:${encodeURIComponent(dataset)}`;
+const SESSION_CHECKPOINT_KEY = (profile: string, device: string, dataset: string) =>
+  `word-atlas:event-session-checkpoint:v2:${encodeURIComponent(profile)}:${encodeURIComponent(device)}:${encodeURIComponent(dataset)}`;
 const BOOTSTRAP_KEY = (profile: string, device: string, dataset: string) =>
   `word-atlas:event-bootstrap:v1:${encodeURIComponent(profile)}:${encodeURIComponent(device)}:${encodeURIComponent(dataset)}`;
 const INBOX_KEY = (profile: string, device: string, dataset: string) =>
@@ -510,6 +512,29 @@ export async function syncEventStream(config: RemoteSyncConfig, datasetId: strin
         const inboxKey = INBOX_KEY(config.profileId, config.deviceId, datasetId);
         let cursor = readJson<number>(storage, cursorKey, 0);
         let inbox = readJson<ServerSyncEvent[]>(storage, inboxKey, []);
+        // The merge semantics changed after earlier clients had already
+        // consumed the server history. Emit one fresh checkpoint for the
+        // current journey so those clients can converge without resetting the
+        // cursor or deleting local progress.
+        const sessionFingerprint = snapshot.progress.session ? JSON.stringify(snapshot.progress.session) : "";
+        const checkpointKey = SESSION_CHECKPOINT_KEY(config.profileId, config.deviceId, datasetId);
+        const previousCheckpoint = readJson<string>(storage, checkpointKey, "");
+        if (sessionFingerprint !== previousCheckpoint) {
+          if (snapshot.progress.session) {
+            const session = snapshot.progress.session;
+            const checkpoint: SyncEvent = createSyncEvent("session", {
+              session,
+              session_id: session.id,
+              session_started: session.started,
+            });
+            const key = OUTBOX_KEY(config.deviceId, datasetId);
+            const outbox = readJson<SyncEvent[]>(storage, key, []);
+            const duplicate = outbox.some((event) => event.kind === "session" && JSON.stringify(event.payload.session) === sessionFingerprint);
+            if (!duplicate) outbox.push(checkpoint);
+            writeJson(storage, key, outbox);
+          }
+          writeJson(storage, checkpointKey, sessionFingerprint);
+        }
         if (!readJson<boolean>(storage, bootstrapKey, false)) {
           const built = (deps.makeBootstrap ?? buildBootstrapEvents)(snapshot.progress, snapshot.settings);
           const key = OUTBOX_KEY(config.deviceId, datasetId);
