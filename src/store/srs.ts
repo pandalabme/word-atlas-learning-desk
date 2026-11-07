@@ -83,6 +83,41 @@ export const MASTERED_STABILITY = 21;
 export const isMastered = (c?: CardState) => !!c && c.st === 2 && c.s >= MASTERED_STABILITY;
 export const isLearning = (c?: CardState) => !!c && !isMastered(c);
 
+/** Apply an explicit atlas status to the actual FSRS card. */
+export function applyManualStatus(prev: CardState | undefined, status: "learning" | "mastered", now: number): CardState {
+  const seen = prev?.seen ?? now;
+  if (status === "mastered") {
+    const stability = Math.max(MASTERED_STABILITY, prev?.s ?? 0);
+    const intervalDays = Math.max(MASTERED_STABILITY, Math.round(stability));
+    return {
+      due: now + intervalDays * 86400000,
+      s: stability,
+      d: prev?.d ?? 5,
+      el: Math.max(prev?.el ?? 0, intervalDays),
+      sd: intervalDays,
+      ls: 0,
+      reps: Math.max(prev?.reps ?? 0, 1),
+      lapses: prev?.lapses ?? 0,
+      st: 2,
+      last: now,
+      seen,
+    };
+  }
+  return {
+    due: now,
+    s: Math.min(prev?.s ?? 0, 1),
+    d: prev?.d ?? 5,
+    el: 0,
+    sd: 0,
+    ls: 0,
+    reps: prev?.reps ?? 0,
+    lapses: prev?.lapses ?? 0,
+    st: 1,
+    last: prev?.last,
+    seen,
+  };
+}
+
 export function formatInterval(ms: number) {
   const m = Math.round(ms / 60000);
   if (m < 1) return "<1分";

@@ -14,7 +14,7 @@ import {
   type ServerSyncEvent,
   type SyncEvent,
 } from "./eventSync";
-import { Rating } from "../store/srs";
+import { isMastered, Rating } from "../store/srs";
 import type { Settings } from "../store/store";
 
 class MemoryStorage implements EventStorage {
@@ -61,6 +61,8 @@ test("replay applies and clears manual atlas statuses from another device", () =
   };
   const updated = replaySyncEvents(initial, [serverEvent(1, "phone", mastered)], "pc");
   assert.equal(updated.progress.manualStatuses.apple, "mastered");
+  assert.equal(isMastered(updated.progress.cards.apple), true);
+  assert.ok(updated.progress.cards.apple.due > Date.parse(mastered.occurred_at));
   const restored = replaySyncEvents(updated, [serverEvent(2, "phone", cleared)], "pc");
   assert.equal(restored.progress.manualStatuses.apple, undefined);
 });

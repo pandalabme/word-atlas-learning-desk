@@ -1,6 +1,6 @@
 import type { Settings } from "../store/store";
 import { emptyProgress, sanitizeProgress, sanitizeSettings, type ActiveSession, type PathDayStat, type Progress, type TypingRound, type WordStatus } from "../store/store";
-import { Rating, review, type CardState, type Grade } from "../store/srs";
+import { applyManualStatus, Rating, review, type CardState, type Grade } from "../store/srs";
 import type { RemoteSyncConfig } from "./remoteSync";
 
 export type SyncEventKind = "bootstrap" | "review" | "bookmark" | "day_delta" | "typing" | "settings" | "session" | "status";
@@ -452,7 +452,11 @@ export function replaySyncEvents(snapshot: EventSyncSnapshot, events: ServerSync
         const manualStatuses = { ...progress.manualStatuses };
         if (status === null) delete manualStatuses[wordId];
         else manualStatuses[wordId] = status;
-        progress = { ...progress, manualStatuses };
+        const time = Date.parse(event.occurred_at);
+        const cards = status && Number.isFinite(time)
+          ? { ...progress.cards, [wordId]: applyManualStatus(progress.cards[wordId], status, time) }
+          : progress.cards;
+        progress = { ...progress, cards, manualStatuses };
       }
     }
   }

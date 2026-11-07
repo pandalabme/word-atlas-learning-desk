@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { Accent } from "../atlas/types";
-import { isMastered, type CardState, type Grade } from "./srs";
+import { applyManualStatus, isMastered, type CardState, type Grade } from "./srs";
 
 export type QuizKind = "meaning" | "picture" | "listen" | "spell";
 export type Step = { id: string; kind: "intro" } | { id: string; kind: QuizKind; retry?: boolean; options?: string[] };
@@ -422,7 +422,8 @@ export function setManualStatus(id: string, status: WordStatus | null) {
     const manualStatuses = { ...p.manualStatuses };
     if (status) manualStatuses[id] = status;
     else delete manualStatuses[id];
-    return { ...p, manualStatuses };
+    const cards = status ? { ...p.cards, [id]: applyManualStatus(p.cards[id], status, occurredAt.getTime()) } : p.cards;
+    return { ...p, cards, manualStatuses };
   });
   store.emitSyncEvent("status", { word_id: id, status }, occurredAt);
 }
