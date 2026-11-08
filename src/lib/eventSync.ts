@@ -26,6 +26,7 @@ export interface EventSyncStatus {
 export interface EventStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
+  removeItem?: (key: string) => void;
 }
 export type EventFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
@@ -103,6 +104,16 @@ function readJson<T>(storage: EventStorage, key: string, fallback: T): T {
 
 function writeJson(storage: EventStorage, key: string, value: unknown): void {
   storage.setItem(key, JSON.stringify(value));
+}
+
+/** Clear a potentially oversized cache entry even when writing its replacement hits quota. */
+function clearStoredJson(storage: EventStorage, key: string): void {
+  try {
+    storage.setItem(key, "[]");
+  } catch (error) {
+    if (storage.removeItem) storage.removeItem(key);
+    else throw error;
+  }
 }
 
 function makeBootstrapEvent(payload: Record<string, unknown>, idFactory: () => string, occurredAt: string): SyncEvent {
@@ -511,12 +522,21 @@ export async function syncEventStream(config: RemoteSyncConfig, datasetId: strin
     try {
       let stable = false;
       while (!stable) {
-        const snapshot = deps.getCurrent();
+        let snapshot = deps.getCurrent();
         const cursorKey = CURSOR_KEY(config.profileId, config.deviceId, datasetId);
         const bootstrapKey = BOOTSTRAP_KEY(config.profileId, config.deviceId, datasetId);
         const inboxKey = INBOX_KEY(config.profileId, config.deviceId, datasetId);
         let cursor = readJson<number>(storage, cursorKey, 0);
         let inbox = readJson<ServerSyncEvent[]>(storage, inboxKey, []);
+        // Older clients persisted every server page before applying it. Recover
+        // that backlog first and immediately free the key; otherwise the next
+        // page can exceed the browser's localStorage quota.
+        if (inbox.length) {
+          clearStoredJson(storage, inboxKey);
+          deps.apply(replaySyncEvents(snapshot, inbox, config.deviceId));
+          snapshot = deps.getCurrent();
+          inbox = [];
+        }
         // The merge semantics changed after earlier clients had already
         // consumed the server history. Emit one fresh checkpoint for the
         // current journey so those clients can converge without resetting the
@@ -562,8 +582,6 @@ export async function syncEventStream(config: RemoteSyncConfig, datasetId: strin
           const knownInbox = new Set(inbox.map((event) => `${event.device_id}:${event.seq}`));
           inbox.push(...page.events.filter((event) => event.device_id !== config.deviceId && !knownInbox.has(`${event.device_id}:${event.seq}`)));
           cursor = page.cursor;
-          writeJson(storage, inboxKey, inbox);
-          writeJson(storage, cursorKey, cursor);
         };
         while (!drained) {
           const outboxKey = OUTBOX_KEY(config.deviceId, datasetId);
@@ -584,8 +602,17 @@ export async function syncEventStream(config: RemoteSyncConfig, datasetId: strin
 
         const current = deps.getCurrent();
         if (current.progress === snapshot.progress && current.settings === snapshot.settings) {
-          if (inbox.length) deps.apply(replaySyncEvents(current, inbox, config.deviceId));
-          writeJson(storage, inboxKey, []);
+          // Keep the inbox only in memory while paging. Clear the old durable
+          // cache before applying so store persistence has quota headroom.
+          clearStoredJson(storage, inboxKey);
+          if (inbox.length) {
+            deps.apply(replaySyncEvents(current, inbox, config.deviceId));
+            snapshot = deps.getCurrent();
+          }
+          // Advance the durable cursor only after the corresponding events are
+          // applied. If a tab changes local state during sync, leave the old
+          // cursor untouched so the server pages are safely replayed next time.
+          writeJson(storage, cursorKey, cursor);
           stable = true;
         }
       }

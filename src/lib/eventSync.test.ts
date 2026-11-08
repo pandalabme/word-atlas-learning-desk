@@ -23,6 +23,13 @@ class MemoryStorage implements EventStorage {
   setItem(key: string, value: string) { this.values.set(key, value); }
 }
 
+class InboxQuotaStorage extends MemoryStorage {
+  setItem(key: string, value: string) {
+    if (key.includes("event-inbox") && value !== "[]") throw new Error("quota exceeded");
+    super.setItem(key, value);
+  }
+}
+
 const settings: Settings = {
   accent: "uk", autoplay: true, dailyNew: 10, retention: 0.9, theme: "dark", sfx: true, spell: true,
   startLevel: 0, onboarded: true, dataset: "open", curriculum: "ielts", ambience: "off", ambienceVolume: 0.4, splash: false,
@@ -257,6 +264,27 @@ test("sync persists integer cursor and device-scoped outbox across bounded pagin
   assert.equal(storage.getItem(eventCursorKeyForTesting(config.profileId, config.deviceId, snapshot.progress.datasetId)), "2");
   assert.deepEqual(JSON.parse(storage.getItem(eventOutboxKeyForTesting(config.deviceId, snapshot.progress.datasetId)) ?? "null"), []);
   assert.deepEqual(applied.progress.bookmarks, ["two"]);
+});
+
+test("sync recovers an oversized durable inbox without writing it back", async () => {
+  const storage = new InboxQuotaStorage();
+  const snapshot = emptySyncSnapshot("word-atlas-open");
+  const remote: ServerSyncEvent = serverEvent(1, "other-device", {
+    event_id: uid(13), occurred_at: "2026-03-01T00:00:01.000Z", kind: "bookmark", payload: { word_id: "from-inbox", action: "add" },
+  });
+  const inboxKey = `word-atlas:event-inbox:v1:${encodeURIComponent(config.profileId)}:${encodeURIComponent(config.deviceId)}:${encodeURIComponent(snapshot.progress.datasetId)}`;
+  storage.values.set(inboxKey, JSON.stringify([remote]));
+  storage.values.set(eventCursorKeyForTesting(config.profileId, config.deviceId, snapshot.progress.datasetId), "1");
+  let applied = snapshot;
+  await syncEventStream(config, snapshot.progress.datasetId, {
+    storage,
+    getCurrent: () => snapshot,
+    apply: (next) => { applied = next; },
+    makeBootstrap: () => [],
+    fetcher: async () => new Response(JSON.stringify({ cursor: 1, events: [], has_more: false }), { status: 200 }),
+  });
+  assert.deepEqual(applied.progress.bookmarks, ["from-inbox"]);
+  assert.equal(storage.getItem(inboxKey), "[]");
 });
 
 test("sync emits a fresh active-journey checkpoint after the old cursor was consumed", async () => {
